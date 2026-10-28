@@ -202,7 +202,7 @@
     .answers legend { margin-bottom: .7rem; color: var(--muted); font-size: .9rem; }
     .option {
       display: grid;
-      grid-template-columns: auto 1fr;
+      grid-template-columns: 1.1rem 1.45rem minmax(0, 1fr);
       gap: .75rem;
       align-items: flex-start;
       margin-top: .65rem;
@@ -216,7 +216,7 @@
     .option:has(input:checked) { border-color: var(--primary); background: var(--primary-soft); }
     .option input { width: 1.1rem; height: 1.1rem; margin: .16rem 0 0; accent-color: var(--primary); }
     .option-letter { display: inline-grid; place-items: center; width: 1.45rem; height: 1.45rem; border-radius: 50%; background: var(--surface-soft); color: var(--primary); font-weight: 800; font-size: .83rem; }
-    .option-text { min-width: 0; }
+    .option-text { min-width: 0; overflow-wrap: anywhere; }
     .question-actions { display: flex; flex-wrap: wrap; justify-content: space-between; gap: .7rem; margin-top: 1.25rem; }
     .question-actions .group { display: flex; flex-wrap: wrap; gap: .6rem; }
     .exam-sidebar { position: sticky; top: 1rem; padding: 1rem; }
