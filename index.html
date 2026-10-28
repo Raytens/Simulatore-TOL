@@ -1,0 +1,858 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Simulatore indipendente di pratica TOL per Ingegneria.">
+  <title>Simulatore TOL – Ingegneria</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f4f7fb;
+      --surface: #ffffff;
+      --surface-soft: #eef4fb;
+      --text: #142033;
+      --muted: #5c6b80;
+      --border: #d7e0eb;
+      --primary: #0757ae;
+      --primary-strong: #03458d;
+      --primary-soft: #dcecff;
+      --success: #147a5a;
+      --success-soft: #e2f5ed;
+      --warning: #a86000;
+      --warning-soft: #fff1db;
+      --danger: #b42318;
+      --danger-soft: #ffebe9;
+      --focus: #f5a800;
+      --shadow: 0 10px 28px rgba(30, 57, 91, .10);
+      --radius: 18px;
+    }
+
+    body.dark {
+      color-scheme: dark;
+      --bg: #111a27;
+      --surface: #182436;
+      --surface-soft: #202f44;
+      --text: #edf4ff;
+      --muted: #b4c2d5;
+      --border: #3b4d66;
+      --primary: #78b7ff;
+      --primary-strong: #a7d1ff;
+      --primary-soft: #243f62;
+      --success: #67d9ae;
+      --success-soft: #173f35;
+      --warning: #ffc36a;
+      --warning-soft: #4d3818;
+      --danger: #ffaaa3;
+      --danger-soft: #4e2627;
+      --focus: #ffd166;
+      --shadow: 0 12px 32px rgba(0, 0, 0, .25);
+    }
+
+    * { box-sizing: border-box; }
+    html { min-width: 320px; background: var(--bg); }
+    body {
+      margin: 0;
+      min-width: 320px;
+      min-height: 100vh;
+      background: var(--bg);
+      color: var(--text);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.5;
+    }
+
+    button, input, select { font: inherit; }
+    button { cursor: pointer; }
+    button:disabled { cursor: not-allowed; opacity: .48; }
+    button:focus-visible, input:focus-visible, select:focus-visible, a:focus-visible {
+      outline: 3px solid var(--focus);
+      outline-offset: 3px;
+    }
+    .skip-link {
+      position: fixed;
+      z-index: 10;
+      left: 1rem;
+      top: -4rem;
+      padding: .65rem .9rem;
+      border-radius: 8px;
+      background: var(--text);
+      color: var(--surface);
+      transition: top .18s ease;
+    }
+    .skip-link:focus { top: 1rem; }
+    .shell { width: min(1180px, calc(100% - 2rem)); margin: 0 auto; }
+    .app-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      padding: 1.25rem 0;
+    }
+    .brand { display: flex; align-items: center; gap: .8rem; min-width: 0; }
+    .brand-mark {
+      display: grid;
+      place-items: center;
+      flex: 0 0 2.65rem;
+      width: 2.65rem;
+      height: 2.65rem;
+      border-radius: 12px;
+      background: linear-gradient(145deg, var(--primary), #32a6d7);
+      color: #fff;
+      font-weight: 800;
+      box-shadow: 0 6px 16px rgba(7, 87, 174, .28);
+    }
+    .brand p, .brand h2 { margin: 0; }
+    .brand h2 { font-size: 1rem; letter-spacing: -.01em; }
+    .eyebrow {
+      margin: 0 0 .25rem;
+      color: var(--primary);
+      font-size: .77rem;
+      font-weight: 800;
+      letter-spacing: .07em;
+      text-transform: uppercase;
+    }
+    .muted { color: var(--muted); }
+    .theme-button, .button-secondary, .button-quiet, .question-nav button {
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text);
+    }
+    .theme-button { border-radius: 999px; padding: .55rem .8rem; font-size: .9rem; }
+    .theme-button:hover, .button-secondary:hover, .button-quiet:hover { border-color: var(--primary); color: var(--primary); }
+    .hero, .card, .question-card, .results-card, .review-card, .passage-card, .exam-sidebar {
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--surface);
+      box-shadow: var(--shadow);
+    }
+    .hero { padding: clamp(1.4rem, 4vw, 3.25rem); margin: .4rem 0 1.25rem; }
+    .hero h1 { margin: 0; max-width: 760px; font-size: clamp(2rem, 5vw, 3.6rem); line-height: 1.05; letter-spacing: -.055em; }
+    .hero > p:not(.eyebrow) { max-width: 760px; margin: 1.1rem 0 0; color: var(--muted); font-size: 1.08rem; }
+    .independent-note {
+      display: inline-flex;
+      gap: .4rem;
+      margin-top: 1.25rem;
+      padding: .55rem .75rem;
+      border-radius: 999px;
+      background: var(--surface-soft);
+      color: var(--muted);
+      font-size: .88rem;
+    }
+    .section-title { margin: 2rem 0 .8rem; font-size: 1.25rem; letter-spacing: -.02em; }
+    .section-title:first-child { margin-top: 0; }
+    .section-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .85rem; }
+    .section-card { padding: 1rem; }
+    .section-card h3 { margin: 0; font-size: .99rem; line-height: 1.25; }
+    .section-card p { margin: .55rem 0 0; color: var(--muted); font-size: .9rem; }
+    .section-card strong { display: block; margin-top: .75rem; color: var(--primary); font-size: 1.1rem; }
+    .info-grid { display: grid; grid-template-columns: 1.35fr .9fr; gap: 1rem; margin-top: 1rem; }
+    .card { padding: 1.2rem; }
+    .card h2, .card h3 { margin: 0; font-size: 1.08rem; }
+    .rules { display: grid; grid-template-columns: repeat(3, 1fr); gap: .7rem; margin: 1rem 0 0; }
+    .rule { padding: .75rem; border-radius: 12px; background: var(--surface-soft); }
+    .rule strong { display: block; font-size: 1.15rem; }
+    .rule span { color: var(--muted); font-size: .86rem; }
+    .formula { margin: .9rem 0 0; padding: .8rem; border-left: 4px solid var(--primary); background: var(--surface-soft); color: var(--muted); font-size: .9rem; }
+    .start-row { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-top: 1.4rem; }
+    .start-row p { margin: 0; color: var(--muted); font-size: .9rem; }
+    .button-primary {
+      border: 1px solid var(--primary);
+      border-radius: 10px;
+      padding: .75rem 1.05rem;
+      background: var(--primary);
+      color: #fff;
+      font-weight: 750;
+      box-shadow: 0 4px 10px rgba(7, 87, 174, .18);
+    }
+    .button-primary:hover { background: var(--primary-strong); border-color: var(--primary-strong); }
+    .button-secondary, .button-quiet { border-radius: 10px; padding: .68rem .9rem; font-weight: 650; }
+    .button-quiet { background: transparent; }
+    .button-danger { border-color: var(--danger); color: var(--danger); }
+    .button-danger:hover { background: var(--danger-soft); border-color: var(--danger); color: var(--danger); }
+    .exam-layout { display: grid; grid-template-columns: minmax(0, 1fr) 280px; gap: 1rem; align-items: start; padding-bottom: 1.6rem; }
+    .exam-main { min-width: 0; }
+    .exam-status { position: sticky; top: 0; z-index: 4; padding: .15rem 0 .75rem; background: var(--bg); }
+    .exam-topline { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+    .exam-topline h1 { margin: 0; font-size: clamp(1.35rem, 3vw, 1.75rem); letter-spacing: -.03em; }
+    .clock {
+      display: inline-flex;
+      align-items: center;
+      gap: .5rem;
+      flex: 0 0 auto;
+      padding: .55rem .75rem;
+      border-radius: 999px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow);
+      font-variant-numeric: tabular-nums;
+      font-weight: 800;
+    }
+    .clock.is-low { border-color: var(--danger); color: var(--danger); background: var(--danger-soft); }
+    .notice { margin: 0 0 .8rem; padding: .75rem .9rem; border: 1px solid var(--primary); border-radius: 12px; background: var(--primary-soft); color: var(--text); }
+    .progress-wrap { margin: .75rem 0 0; }
+    .progress-meta { display: flex; justify-content: space-between; gap: 1rem; margin-bottom: .45rem; color: var(--muted); font-size: .88rem; }
+    .progress-track { overflow: hidden; height: .55rem; border-radius: 99px; background: var(--border); }
+    .progress-bar { height: 100%; border-radius: inherit; background: linear-gradient(90deg, var(--primary), #30a3d2); transition: width .2s ease; }
+    .question-card { padding: clamp(1.1rem, 3vw, 1.75rem); }
+    .question-meta { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; margin-bottom: .8rem; }
+    .badge { display: inline-flex; padding: .22rem .52rem; border-radius: 999px; background: var(--surface-soft); color: var(--muted); font-size: .78rem; font-weight: 700; }
+    .badge.id { background: var(--primary-soft); color: var(--primary); }
+    .question-card h2 { margin: 0; font-size: clamp(1.15rem, 2.5vw, 1.45rem); line-height: 1.35; letter-spacing: -.022em; }
+    .answers { margin: 1.3rem 0 0; padding: 0; border: 0; }
+    .answers legend { margin-bottom: .7rem; color: var(--muted); font-size: .9rem; }
+    .option {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: .75rem;
+      align-items: flex-start;
+      margin-top: .65rem;
+      padding: .85rem;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: var(--surface);
+      transition: border-color .14s ease, background .14s ease, transform .14s ease;
+    }
+    .option:hover { border-color: var(--primary); transform: translateY(-1px); }
+    .option:has(input:checked) { border-color: var(--primary); background: var(--primary-soft); }
+    .option input { width: 1.1rem; height: 1.1rem; margin: .16rem 0 0; accent-color: var(--primary); }
+    .option-letter { display: inline-grid; place-items: center; width: 1.45rem; height: 1.45rem; border-radius: 50%; background: var(--surface-soft); color: var(--primary); font-weight: 800; font-size: .83rem; }
+    .option-text { min-width: 0; }
+    .question-actions { display: flex; flex-wrap: wrap; justify-content: space-between; gap: .7rem; margin-top: 1.25rem; }
+    .question-actions .group { display: flex; flex-wrap: wrap; gap: .6rem; }
+    .exam-sidebar { position: sticky; top: 1rem; padding: 1rem; }
+    .exam-sidebar h2 { margin: 0; font-size: 1rem; }
+    .exam-sidebar p { margin: .4rem 0 .8rem; color: var(--muted); font-size: .86rem; }
+    .question-nav { display: grid; grid-template-columns: repeat(5, 1fr); gap: .45rem; }
+    .question-nav button { min-height: 2.25rem; border-radius: 8px; font-weight: 750; }
+    .question-nav button:hover { border-color: var(--primary); color: var(--primary); }
+    .question-nav button.is-current { border-color: var(--primary); background: var(--primary); color: #fff; }
+    .question-nav button.is-answered:not(.is-current) { border-color: var(--success); background: var(--success-soft); color: var(--success); }
+    .legend { display: grid; gap: .45rem; margin-top: 1rem; color: var(--muted); font-size: .79rem; }
+    .legend span { display: flex; align-items: center; gap: .45rem; }
+    .legend i { display: inline-block; width: .7rem; height: .7rem; border: 1px solid var(--border); border-radius: 3px; background: var(--surface); }
+    .legend i.current { border-color: var(--primary); background: var(--primary); }
+    .legend i.answered { border-color: var(--success); background: var(--success-soft); }
+    .end-section { width: 100%; margin-top: 1.1rem; }
+    .passage-card { margin: 0 0 1rem; padding: 1.15rem; border-left: 5px solid var(--primary); }
+    .passage-card h2 { margin: 0; font-size: 1.05rem; }
+    .passage-origin { margin: .35rem 0 .8rem; color: var(--muted); font-size: .82rem; }
+    .passage-text { margin: 0; color: var(--text); font-size: .97rem; }
+    .results-head { padding: 1.8rem 0 1rem; text-align: center; }
+    .results-head h1 { margin: 0; font-size: clamp(1.8rem, 4vw, 2.7rem); letter-spacing: -.045em; }
+    .score-orb { display: grid; place-items: center; width: min(210px, 52vw); aspect-ratio: 1; margin: 1.2rem auto; border: 9px solid var(--primary); border-radius: 50%; background: var(--surface); box-shadow: var(--shadow); }
+    .score-orb strong { display: block; font-size: clamp(2rem, 7vw, 3.4rem); line-height: 1; color: var(--primary); font-variant-numeric: tabular-nums; }
+    .score-orb span { margin-top: .25rem; color: var(--muted); font-size: .85rem; }
+    .results-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .8rem; }
+    .results-card { padding: 1rem; }
+    .results-card h2 { margin: 0; font-size: .98rem; line-height: 1.25; }
+    .results-card .score { margin: .75rem 0 .3rem; color: var(--primary); font-size: 1.5rem; font-weight: 800; }
+    .result-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .55rem; margin: .85rem 0 0; }
+    .result-list div { padding: .55rem; border-radius: 9px; background: var(--surface-soft); color: var(--muted); font-size: .82rem; }
+    .result-list strong { display: block; color: var(--text); font-size: 1rem; }
+    .results-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: .7rem; margin: 1.5rem 0 2rem; }
+    .review-header { display: flex; align-items: flex-end; justify-content: space-between; gap: 1rem; padding: 1rem 0; }
+    .review-header h1 { margin: 0; font-size: clamp(1.55rem, 4vw, 2.25rem); letter-spacing: -.04em; }
+    .filters { display: grid; grid-template-columns: repeat(2, minmax(170px, 1fr)); gap: .7rem; padding: 1rem; margin-bottom: 1rem; }
+    .filters label { display: grid; gap: .35rem; color: var(--muted); font-size: .86rem; font-weight: 700; }
+    select { width: 100%; padding: .63rem .7rem; border: 1px solid var(--border); border-radius: 9px; background: var(--surface); color: var(--text); }
+    .review-count { margin: 0 0 .8rem; color: var(--muted); }
+    .review-list { display: grid; gap: 1rem; padding-bottom: 2rem; }
+    .review-card { padding: 1.1rem; border-left: 5px solid var(--border); }
+    .review-card.status-correct { border-left-color: var(--success); }
+    .review-card.status-wrong { border-left-color: var(--danger); }
+    .review-card.status-blank { border-left-color: var(--warning); }
+    .review-card h2 { margin: .5rem 0 0; font-size: 1.1rem; line-height: 1.35; }
+    .review-outcome { display: inline-flex; margin-top: .8rem; padding: .25rem .55rem; border-radius: 999px; font-size: .8rem; font-weight: 800; }
+    .review-outcome.correct { background: var(--success-soft); color: var(--success); }
+    .review-outcome.wrong { background: var(--danger-soft); color: var(--danger); }
+    .review-outcome.blank { background: var(--warning-soft); color: var(--warning); }
+    .review-answer-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .7rem; margin-top: .9rem; }
+    .review-answer { padding: .75rem; border-radius: 10px; background: var(--surface-soft); }
+    .review-answer dt { color: var(--muted); font-size: .8rem; font-weight: 700; }
+    .review-answer dd { margin: .25rem 0 0; font-size: .9rem; }
+    .review-section { margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border); }
+    .review-section h3 { margin: 0; font-size: .96rem; }
+    .review-section ol, .review-section ul { margin: .6rem 0 0; padding-left: 1.25rem; }
+    .review-section li { margin-top: .38rem; }
+    .review-section p { margin: .5rem 0 0; }
+    .distractors { display: grid; gap: .45rem; }
+    .distractor { padding: .65rem; border-radius: 8px; background: var(--surface-soft); }
+    .distractor strong { color: var(--primary); }
+    .empty-state { padding: 1.5rem; text-align: center; color: var(--muted); }
+    .error-screen { max-width: 760px; margin: 7vh auto; padding: 1.5rem; border: 1px solid var(--danger); border-radius: var(--radius); background: var(--surface); color: var(--text); }
+    .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+
+    @media (max-width: 920px) {
+      .section-grid, .results-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .exam-layout { grid-template-columns: 1fr; }
+      .exam-sidebar { position: static; }
+      .question-nav { grid-template-columns: repeat(10, 1fr); }
+    }
+    @media (max-width: 620px) {
+      .shell { width: min(100% - 1rem, 1180px); }
+      .app-header { padding: .8rem 0; }
+      .brand-mark { width: 2.35rem; height: 2.35rem; flex-basis: 2.35rem; }
+      .section-grid, .info-grid, .results-grid, .review-answer-grid, .rules { grid-template-columns: 1fr; }
+      .start-row, .exam-topline, .review-header { align-items: stretch; flex-direction: column; }
+      .clock { align-self: flex-start; }
+      .question-nav { grid-template-columns: repeat(5, 1fr); }
+      .question-actions { flex-direction: column-reverse; }
+      .question-actions .group { width: 100%; }
+      .question-actions .group button { flex: 1; }
+      .filters { grid-template-columns: 1fr; }
+      .results-actions > button { width: 100%; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; }
+    }
+  </style>
+</head>
+<body>
+  <a class="skip-link" href="#app">Salta al contenuto</a>
+  <div id="app" tabindex="-1"></div>
+  <noscript><p class="error-screen">Per usare il simulatore è necessario abilitare JavaScript.</p></noscript>
+
+  <script id="bank-data" type="application/json">{"passages":[{"id":"CV-PASSAGE-01","section":"Comprensione verbale","title":"La manutenzione e il racconto dell'innovazione","origin":"Testo originale redatto per questo banco (non proviene dal TOL ufficiale né da altre fonti)","text":"Le società contemporanee tendono a raccontare la propria storia tecnica come una successione di invenzioni: il motore a vapore, l'elettricità, il microprocessore. Questa narrazione, per quanto efficace, trascura una componente altrettanto decisiva del funzionamento delle infrastrutture, cioè il lavoro quotidiano di manutenzione. Un ponte non è un oggetto concluso nel momento in cui viene inaugurato: continua a esistere come ponte solo perché qualcuno ne controlla i cavi, ne sostituisce gli appoggi, ne rinnova il manto stradale. Se questa attività cessasse, la struttura non resterebbe immutata, ma comincerebbe a degradarsi, spesso in modo non visibile fino a quando il danno diventa grave.\n\nAlcuni studiosi di storia della tecnologia hanno osservato che l'attenzione pubblica e i finanziamenti si concentrano soprattutto sulle opere nuove, perché queste offrono risultati visibili e cerimonie di inaugurazione, mentre la manutenzione produce un risultato paradossale: quando riesce, non accade nulla. Il successo di chi si occupa di conservare consiste in un'assenza, quella del guasto, e un'assenza è difficile da misurare e ancora più difficile da celebrare. Di conseguenza, nei bilanci pubblici le spese di manutenzione vengono spesso considerate rinviabili: un intervento posticipato di un anno non sembra aver causato danni immediati, e il risparmio appare reale, anche se in seguito il costo della riparazione tende a crescere.\n\nNon si tratta, tuttavia, di contrapporre in modo semplicistico innovazione e conservazione. Le due attività si influenzano a vicenda: molte soluzioni tecniche nascono proprio dalla necessità di intervenire su strutture esistenti, e chi ripara un'infrastruttura acquisisce spesso una conoscenza dei suoi punti deboli che i progettisti, lontani dall'uso quotidiano, non possiedono. Riconoscere il valore della manutenzione non significa quindi svalutare l'invenzione, ma ampliare la nozione stessa di competenza tecnica, includendovi la capacità di far durare ciò che già esiste."}],"questions":[{"id":"LM-001","section":"Logica, Matematica e Statistica","topic":"Logica: condizioni necessarie e sufficienti","difficulty":"media","question":"Per un numero intero positivo n si considerino le proposizioni p: «n è multiplo di 6», q: «n è multiplo di 4», r: «n è multiplo di 12». Quale delle seguenti affermazioni è corretta?","options":{"A":"p è condizione sufficiente per r.","B":"q è condizione necessaria e sufficiente per r.","C":"r è condizione necessaria per p.","D":"p e q insieme sono condizione necessaria ma non sufficiente per r.","E":"p è condizione necessaria ma non sufficiente per r."},"correctAnswer":"E","explanationSteps":["«A è condizione necessaria per B» significa B ⇒ A; «A è condizione sufficiente per B» significa A ⇒ B.","Ogni multiplo di 12 è multiplo di 6 (12 = 6·2): r ⇒ p, quindi p è necessaria per r.","Non vale p ⇒ r: il controesempio n = 6 è multiplo di 6 ma non di 12. Dunque p non è sufficiente.","Le altre affermazioni si smentiscono con i controesempi n = 4 e n = 6, oppure osservando che mcm(6, 4) = 12 rende p ∧ q equivalente a r."],"distractorAnalysis":{"A":"Falsa: n = 6 è multiplo di 6 ma non di 12, quindi p non implica r.","B":"Falsa: n = 4 è multiplo di 4 ma non di 12; q è necessaria (r ⇒ q) ma non sufficiente.","C":"Falsa: n = 6 verifica p ma non r; r è condizione sufficiente (non necessaria) per p.","D":"Falsa: essere multiplo sia di 6 sia di 4 equivale a essere multiplo di mcm(6, 4) = 12, quindi p e q insieme sono necessarie e sufficienti per r."},"concept":"Implicazione, condizione necessaria e condizione sufficiente; uso dei controesempi.","commonMistake":"Scambiare il verso dell'implicazione, cioè confondere «necessaria» con «sufficiente»."},{"id":"LM-002","section":"Logica, Matematica e Statistica","topic":"Logica: negazione di proposizioni con quantificatori","difficulty":"difficile","question":"Si consideri l'affermazione: «In ogni classe c'è almeno uno studente che ha letto tutti i libri assegnati». Quale delle seguenti ne è la negazione?","options":{"A":"Esiste una classe in cui nessuno studente ha letto alcuno dei libri assegnati.","B":"In ogni classe c'è uno studente che non ha letto almeno uno dei libri assegnati.","C":"Esiste una classe in cui ogni studente ha letto almeno uno dei libri assegnati.","D":"Esiste una classe in cui nessuno studente ha letto tutti i libri assegnati.","E":"In nessuna classe c'è uno studente che abbia letto tutti i libri assegnati."},"correctAnswer":"D","explanationSteps":["Formalizziamo: per ogni classe c, esiste uno studente s tale che, per ogni libro l, s ha letto l.","Negare significa scambiare i quantificatori e negare il predicato: ¬∀ = ∃, ¬∃ = ∀, ¬∀ = ∃.","Risulta: esiste una classe c tale che, per ogni studente s, esiste un libro l non letto da s.","In italiano: esiste una classe in cui nessuno studente ha letto tutti i libri assegnati."],"distractorAnalysis":{"A":"Troppo forte: nega «tutti i libri» con «nessun libro». Per negare «ha letto tutti» basta che manchi almeno un libro.","B":"Non è la negazione: mantiene il quantificatore «in ogni classe» invece di trasformarlo in «esiste una classe».","C":"Nega solo il quantificatore esterno e lascia inalterato il resto; riguarda inoltre «almeno un libro», non «tutti i libri».","E":"Troppo forte: afferma che in ogni classe nessuno ha letto tutti i libri, mentre la negazione richiede solo che ciò accada in almeno una classe."},"concept":"Negazione di una proposizione contenente «per ogni» ed «esiste»: i quantificatori si scambiano.","commonMistake":"Negare «ha letto tutti i libri» con «non ha letto nessun libro», che è molto più forte."},{"id":"LM-003","section":"Logica, Matematica e Statistica","topic":"Logica: deduzione per casi e coerenza","difficulty":"media","question":"Anna, Bruno e Carla sono interrogati; ciascuno dice sempre la verità oppure mente sempre. Anna afferma: «Bruno mente». Bruno afferma: «Carla mente». Carla afferma: «Anna e Bruno mentono». Chi dice la verità?","options":{"A":"Solo Anna","B":"Solo Bruno","C":"Solo Carla","D":"Anna e Carla","E":"Nessuno dei tre"},"correctAnswer":"B","explanationSteps":["Poniamo tA, tB, tC = «dice la verità». Le tre affermazioni diventano: tA ⇔ ¬tB, tB ⇔ ¬tC, tC ⇔ (¬tA ∧ ¬tB).","Se Anna dicesse la verità: Bruno mente, quindi (poiché Bruno afferma «Carla mente») Carla dice la verità. Ma Carla afferma che Anna mente: contraddizione.","Quindi Anna mente: la sua affermazione è falsa, per cui Bruno dice la verità e Carla mente.","Verifica di coerenza: Carla mente e infatti «Anna e Bruno mentono» è falsa perché Bruno dice la verità.","L'unica combinazione coerente è: solo Bruno dice la verità."],"distractorAnalysis":{"A":"Se Anna dicesse la verità, Bruno mentirebbe, quindi Carla direbbe la verità; ma allora Anna mentirebbe: contraddizione.","C":"Se solo Carla dicesse la verità, Anna mentirebbe: la sua affermazione «Bruno mente» sarebbe falsa, cioè Bruno direbbe la verità, contro l'ipotesi.","D":"Se Anna dicesse la verità, Bruno mentirebbe e Carla sarebbe sincera; ma Carla afferma che Anna mente: contraddizione.","E":"Se tutti mentissero, l'affermazione di Anna «Bruno mente» sarebbe vera, contro l'ipotesi che Anna menta."},"concept":"Deduzione per casi e ricerca dell'unica assegnazione di valori di verità coerente.","commonMistake":"Scegliere un caso e non controllare che la conclusione sia coerente con tutte e tre le affermazioni."},{"id":"LM-004","section":"Logica, Matematica e Statistica","topic":"Logica e statistica: insiemi e inclusione–esclusione","difficulty":"media","question":"In un gruppo di 60 persone, 36 parlano inglese, 28 francese e 20 spagnolo. Inoltre 14 parlano inglese e francese, 10 inglese e spagnolo, 8 francese e spagnolo, e 5 parlano tutte e tre le lingue. Quante persone parlano esattamente due delle tre lingue?","options":{"A":"5","B":"17","C":"22","D":"27","E":"32"},"correctAnswer":"B","explanationSteps":["Le persone che parlano esattamente due lingue si ottengono togliendo da ciascuna intersezione a due quelle che parlano tutte e tre le lingue.","Inglese e francese soltanto: 14 − 5 = 9. Inglese e spagnolo soltanto: 10 − 5 = 5. Francese e spagnolo soltanto: 8 − 5 = 3.","Totale: 9 + 5 + 3 = 17.","Controllo: solo una lingua 17 + 11 + 7 = 35; esattamente due 17; tre 5; nessuna lingua 3; 35 + 17 + 5 + 3 = 60."],"distractorAnalysis":{"A":"È il numero di chi parla tutte e tre le lingue, non esattamente due.","C":"Sottrae 10 = 2·5 dalla somma 14 + 10 + 8: ma chi parla tutte e tre le lingue è contato tre volte, quindi si devono togliere 3·5 = 15.","D":"Sottrae una sola volta le 5 persone che parlano tutte e tre le lingue, che invece compaiono tre volte.","E":"È la somma 14 + 10 + 8: include anche le persone che parlano tre lingue, contate tre volte."},"concept":"Conteggio con tre insiemi: regioni del diagramma di Venn e principio di inclusione–esclusione.","commonMistake":"Sommare le intersezioni a due senza correggere il triplo conteggio di chi appartiene ai tre insiemi."},{"id":"LM-005","section":"Logica, Matematica e Statistica","topic":"Logica: correttezza di una deduzione","difficulty":"media","question":"Si consideri il ragionamento: «Ogni multiplo di 9 è multiplo di 3. Il numero 144 è multiplo di 3. Quindi 144 è multiplo di 9.» Quale delle seguenti affermazioni è corretta?","options":{"A":"Il ragionamento non è valido: la conclusione non segue dalle premesse, anche se è vera.","B":"Il ragionamento non è valido perché la conclusione è falsa.","C":"Il ragionamento non è valido perché la prima premessa è falsa.","D":"Il ragionamento è corretto, perché la conclusione è vera.","E":"Il ragionamento è corretto, perché si applica la proprietà transitiva."},"correctAnswer":"A","explanationSteps":["Schema del ragionamento: da «ogni M9 è M3» e «144 è M3» si conclude «144 è M9». È l'affermazione del conseguente: da p ⇒ q e q non si può dedurre p.","Le stesse premesse valgono per 12, che è multiplo di 3 ma non di 9: lo schema permetterebbe di concludere il falso.","Il fatto che 144 = 9·16 sia multiplo di 9 è un caso fortunato: la conclusione è vera, ma non è dedotta dalle premesse."],"distractorAnalysis":{"B":"La conclusione è vera (144 = 9·16): l'errore sta nel passaggio logico, non nel valore della conclusione.","C":"La prima premessa è vera: 9 = 3·3, quindi ogni multiplo di 9 è multiplo di 3.","D":"Confonde la verità della conclusione con la validità dell'argomento: 144 = 9·16 è multiplo di 9, ma la deduzione non lo garantisce.","E":"La transitività permetterebbe di passare da «multiplo di 9» a «multiplo di 3», non viceversa."},"concept":"Validità di un argomento e verità delle sue proposizioni sono concetti distinti; errore dell'affermazione del conseguente.","commonMistake":"Ritenere corretto un ragionamento solo perché la conclusione risulta vera."},{"id":"LM-006","section":"Logica, Matematica e Statistica","topic":"Logica: ragionamento per assurdo","difficulty":"media","question":"Si vuole dimostrare per assurdo la proposizione: «Se un intero n non è multiplo di 3, allora n² non è multiplo di 3». Da quale ipotesi si deve partire?","options":{"A":"n non è multiplo di 3 oppure n² è multiplo di 3.","B":"n non è multiplo di 3 e n² non è multiplo di 3.","C":"n è multiplo di 3 e n² non è multiplo di 3.","D":"n è multiplo di 3 e n² è multiplo di 3.","E":"n non è multiplo di 3 e n² è multiplo di 3."},"correctAnswer":"E","explanationSteps":["Una dimostrazione per assurdo assume la negazione della proposizione da dimostrare e cerca una contraddizione.","La proposizione ha forma p ⇒ q, con p: «n non è multiplo di 3» e q: «n² non è multiplo di 3».","La negazione di p ⇒ q è p ∧ ¬q: «n non è multiplo di 3 e n² è multiplo di 3».","(Conferma: n = 3k ± 1 dà n² = 3(3k² ± 2k) + 1, non multiplo di 3: contraddizione.)"],"distractorAnalysis":{"A":"Nega l'implicazione con una disgiunzione: ma la negazione di p ⇒ q è la congiunzione p ∧ ¬q.","B":"Coincide con l'ipotesi e la tesi, quindi è proprio ciò che si vuole dimostrare, non la sua negazione.","C":"Nega l'implicazione scambiando antecedente e conseguente: è la negazione della proposizione inversa.","D":"È un caso in cui l'implicazione è vera (antecedente falso); non porta a nessuna contraddizione con la tesi."},"concept":"Negazione di un'implicazione: ¬(p ⇒ q) ≡ p ∧ ¬q; struttura della dimostrazione per assurdo.","commonMistake":"Negare l'implicazione con «p oppure ¬q» o con «¬p e q»."},{"id":"LM-007","section":"Logica, Matematica e Statistica","topic":"Logica: inferenza con insiemi (sillogismi)","difficulty":"difficile","question":"Si sa che: (i) ogni socio del club A è studente di ingegneria; (ii) nessuno studente di ingegneria è socio del club B; (iii) almeno un socio del club C è anche socio del club A. Quale delle seguenti conclusioni è necessariamente vera?","options":{"A":"Tutti i soci del club C sono studenti di ingegneria.","B":"Nessun socio del club C è socio del club B.","C":"Ogni studente di ingegneria è socio del club A.","D":"Almeno un socio del club C non è socio del club B.","E":"Almeno uno studente di ingegneria è socio del club B."},"correctAnswer":"D","explanationSteps":["Per (iii) esiste un elemento x socio sia di C sia di A.","Per (i), x è studente di ingegneria; per (ii), x non è socio di B.","Quindi x è un socio di C che non è socio di B: la conclusione D è necessariamente vera.","Le altre quattro si smentiscono con modelli compatibili con le premesse (oppure contraddicono le premesse)."],"distractorAnalysis":{"A":"Non segue: (iii) garantisce solo che alcuni soci di C siano in A, e quindi ingegneri; altri soci di C possono non esserlo.","B":"Non segue: i soci di C che non sono in A potrebbero appartenere a B.","C":"Inverte la premessa (i): A è contenuto nell'insieme degli ingegneri, ma non è detto il contrario.","E":"Contraddice (ii): nessuno studente di ingegneria è socio del club B."},"concept":"Inferenza con insiemi e quantificatori: distinguere ciò che segue necessariamente da ciò che è solo possibile.","commonMistake":"Generalizzare «alcuni» a «tutti», oppure invertire una premessa di inclusione."},{"id":"LM-008","section":"Logica, Matematica e Statistica","topic":"Logica: «solo se» e implicazione contronominale","difficulty":"media","question":"Si consideri l'affermazione: «Si ottiene la borsa di studio solo se la media non è inferiore a 27». Quale delle seguenti affermazioni è logicamente equivalente ad essa?","options":{"A":"Se la media è inferiore a 27, non si ottiene la borsa di studio.","B":"Si ottiene la borsa di studio se e solo se la media non è inferiore a 27.","C":"Se non si ottiene la borsa di studio, la media è inferiore a 27.","D":"Se la media non è inferiore a 27, si ottiene la borsa di studio.","E":"Una media non inferiore a 27 è condizione sufficiente per ottenere la borsa di studio."},"correctAnswer":"A","explanationSteps":["«B solo se M» significa B ⇒ M, con B: «si ottiene la borsa», M: «media non inferiore a 27».","Una implicazione è equivalente alla sua contronominale: ¬M ⇒ ¬B, cioè «se la media è inferiore a 27, non si ottiene la borsa».","Le implicazioni M ⇒ B e ¬B ⇒ ¬M sono invece l'inversa e la contronominale dell'inversa: non equivalgono a B ⇒ M (controesempio: media 28 e borsa non ottenuta)."],"distractorAnalysis":{"B":"Il bicondizionale aggiunge l'implicazione inversa, che l'originale non afferma.","C":"È la contronominale dell'implicazione inversa (M ⇒ B): non è equivalente all'originale.","D":"È l'implicazione inversa («solo se» diventa «se»): non equivale all'originale.","E":"Equivale all'implicazione inversa: invece la media è condizione necessaria, non sufficiente."},"concept":"Implicazione, inversa, contronominale; significato di «solo se».","commonMistake":"Leggere «solo se» come «se», cioè invertire il verso dell'implicazione."},{"id":"LM-009","section":"Logica, Matematica e Statistica","topic":"Logica: ordine dei quantificatori","difficulty":"media","question":"Quale delle seguenti affermazioni sui numeri reali è vera?","options":{"A":"Esiste x tale che, per ogni y, x < y.","B":"Per ogni x esiste y tale che x · y = 1.","C":"Per ogni x esiste y tale che x + y = 0.","D":"Per ogni x esiste y tale che y² = x.","E":"Esiste y tale che, per ogni x, x + y = 0."},"correctAnswer":"C","explanationSteps":["A è falsa: per ogni x reale, scegliendo y = x si ottiene x < x, che è falso.","B è falsa: per x = 0 non esiste alcun y reale tale che x · y = 1.","C è vera: per ogni x reale basta scegliere y = −x, ottenendo x + y = 0.","D è falsa: per x = −1 non esiste alcun numero reale y il cui quadrato sia −1.","E è falsa: non esiste un unico y reale tale che x + y = 0 per ogni x reale."],"distractorAnalysis":{"A":"Falsa: per y = x (oppure y = x − 1) la disuguaglianza non vale; i reali non hanno un minimo.","B":"Falsa: per x = 0 nessun y soddisfa 0 · y = 1.","D":"Falsa: per x = −1 nessun numero reale ha quadrato −1.","E":"Falsa: scambiando l'ordine dei quantificatori y non può dipendere da x; un solo y non annulla ogni x."},"concept":"Quantificatori «per ogni» ed «esiste»: l'ordine cambia il significato; ricerca di controesempi.","commonMistake":"Pensare che l'ordine dei quantificatori non influisca sul significato dell'affermazione."},{"id":"LM-010","section":"Logica, Matematica e Statistica","topic":"Aritmetica: fattorizzazione e divisori","difficulty":"media","question":"Quanti sono i divisori positivi di 360 che sono multipli di 6?","options":{"A":"6","B":"8","C":"12","D":"18","E":"24"},"correctAnswer":"C","explanationSteps":["Scomponiamo: 360 = 2³ · 3² · 5.","Un divisore multiplo di 6 si scrive 6k con 6k | 360, cioè k | 360/6 = 60.","Quindi i divisori cercati sono in corrispondenza biunivoca con i divisori di 60 = 2² · 3 · 5.","Numero di divisori di 60: (2 + 1)(1 + 1)(1 + 1) = 12."],"distractorAnalysis":{"A":"È il numero dei divisori di 360 multipli di 30 (corrispondono ai divisori di 12).","B":"È il numero dei divisori di 360 multipli di 12 (corrispondono ai divisori di 30).","D":"È il numero dei divisori pari di 360: non tutti sono multipli di 6.","E":"È il numero totale dei divisori positivi di 360, senza alcuna restrizione."},"concept":"Scomposizione in fattori primi e conteggio dei divisori; corrispondenza tra multipli e divisori.","commonMistake":"Contare tutti i divisori pari (18) o tutti i divisori (24) senza imporre che siano multipli di 6."},{"id":"LM-011","section":"Logica, Matematica e Statistica","topic":"Aritmetica: numeri decimali periodici e frazioni","difficulty":"media","question":"Quale frazione, ridotta ai minimi termini, rappresenta il numero decimale periodico 1,2454545… (periodo 45, che si ripete all'infinito)?","options":{"A":"137/100","B":"622/495","C":"249/200","D":"415/333","E":"137/110"},"correctAnswer":"E","explanationSteps":["Poniamo x = 1,2454545…: antiperiodo 2 (una cifra) e periodo 45 (due cifre).","Moltiplicando per 10 e per 1000 si ottiene 10x = 12,4545… e 1000x = 1245,4545…","Sottraendo: 990x = 1245 − 12 = 1233, quindi x = 1233/990.","Semplificando per 9: 1233/990 = 137/110."],"distractorAnalysis":{"A":"Deriva da (1245 − 12)/900: denominatore sbagliato (900 invece di 990).","B":"Deriva da (1245 − 1)/990: al numeratore si sottrae 1 invece di 12 (il numero formato dalle cifre fino all'antiperiodo).","C":"Corrisponde al decimale finito 1,245: ignora la ripetizione del periodo.","D":"Equivale a 1245/999: tratta come periodo tutte le cifre decimali, ma l'antiperiodo 2 non si ripete."},"concept":"Trasformazione di un numero periodico misto in frazione: (numero intero senza virgola − antiperiodo)/(9…90…).","commonMistake":"Dimenticare l'antiperiodo, oppure usare un numero sbagliato di 9 e di 0 al denominatore."},{"id":"LM-012","section":"Logica, Matematica e Statistica","topic":"Aritmetica: rappresentazione in base diversa dalla decimale","difficulty":"media","question":"In quale base b (con b > 4) l'addizione 23_b + 14_b = 42_b, dove i numeri sono scritti in base b, risulta corretta?","options":{"A":"4","B":"5","C":"6","D":"7","E":"10"},"correctAnswer":"B","explanationSteps":["Traduciamo in base 10: 23_b = 2b + 3; 14_b = b + 4; 42_b = 4b + 2.","L'uguaglianza diventa 2b + 3 + b + 4 = 4b + 2, cioè 3b + 7 = 4b + 2, da cui b = 5.","Le cifre 2, 3, 1, 4 sono tutte minori di 5: la base è ammissibile.","Verifica: 23_5 = 13, 14_5 = 9, 13 + 9 = 22 = 4·5 + 2 = 42_5."],"distractorAnalysis":{"A":"Non è una base ammissibile: la cifra 4 compare nei numeri, quindi b > 4.","C":"In base 6: 23 + 14 = 15 + 10 = 25 in decimale, che si scrive 41 in base 6, non 42.","D":"In base 7: 23 + 14 = 17 + 11 = 28, che si scrive 40 in base 7, non 42.","E":"In base 10: 23 + 14 = 37, non 42."},"concept":"Valore posizionale in base b: la cifra d in posizione k vale d·b^k; la base deve superare ogni cifra.","commonMistake":"Dimenticare il vincolo b > cifra massima, oppure eseguire la somma come se la base fosse 10."},{"id":"LM-013","section":"Logica, Matematica e Statistica","topic":"Algebra: polinomi, teorema del resto","difficulty":"difficile","question":"Il polinomio P(x) = x³ + kx² − 4x + 4 (con k parametro reale) è divisibile per x − 2. Qual è il resto della divisione di P(x) per x + 1?","options":{"A":"0","B":"4","C":"6","D":"7","E":"8"},"correctAnswer":"C","explanationSteps":["Divisibile per x − 2 ⇒ P(2) = 0: 8 + 4k − 8 + 4 = 0, cioè 4k + 4 = 0, da cui k = −1.","Quindi P(x) = x³ − x² − 4x + 4.","Per il teorema del resto, il resto della divisione per x + 1 = x − (−1) è P(−1).","P(−1) = −1 − 1 + 4 + 4 = 6."],"distractorAnalysis":{"A":"È P(1), cioè il resto per x − 1: si è usato il valore sbagliato della radice del divisore.","B":"È P(0), il termine noto: non è il valore del polinomio in x = −1.","D":"Ignora il termine kx² (come se k = 0): P(−1) = −1 + 4 + 4 = 7.","E":"Deriva da k = +1 (errore di segno nella ricerca di k): P(−1) = −1 + 1 + 4 + 4."},"concept":"Teorema del resto e di Ruffini: P(a) è il resto della divisione per x − a.","commonMistake":"Valutare il polinomio in x = 1 invece che in x = −1 per il divisore x + 1."},{"id":"LM-014","section":"Logica, Matematica e Statistica","topic":"Algebra: minimo comune multiplo di polinomi","difficulty":"media","question":"Il minimo comune multiplo dei polinomi x² − 1, x² − 2x + 1 e x² + x è:","options":{"A":"x(x² − 1)","B":"x(x + 1)²(x − 1)²","C":"(x² − 1)(x² − 2x + 1)(x² + x)","D":"x(x + 1)(x − 1)²","E":"(x² − 1)(x − 1)²"},"correctAnswer":"D","explanationSteps":["Fattorizziamo: x² − 1 = (x − 1)(x + 1); x² − 2x + 1 = (x − 1)²; x² + x = x(x + 1).","Il mcm contiene tutti i fattori irriducibili, ciascuno con il massimo esponente con cui compare.","x: esponente massimo 1; (x + 1): massimo 1; (x − 1): massimo 2.","mcm = x(x + 1)(x − 1)²."],"distractorAnalysis":{"A":"Contiene (x − 1) una sola volta, mentre x² − 2x + 1 = (x − 1)² richiede il quadrato.","B":"Il fattore (x + 1) compare al massimo con esponente 1 nei tre polinomi: l'esponente 2 è di troppo.","C":"È il prodotto dei tre polinomi, non il minimo comune multiplo: ha grado 6.","E":"Manca il fattore x (di x² + x) e (x − 1) compare con esponente 3, ben oltre il massimo 2."},"concept":"Fattorizzazione di polinomi; mcm come prodotto dei fattori comuni e non comuni con il massimo esponente.","commonMistake":"Prendere il prodotto dei polinomi, oppure il minimo esponente (come nel MCD) invece del massimo."},{"id":"LM-015","section":"Logica, Matematica e Statistica","topic":"Algebra: equazioni con radicali","difficulty":"media","question":"L'equazione √(x + 2) = x − 4, nell'incognita reale x:","options":{"A":"ha un'unica soluzione, x = 7.","B":"ha un'unica soluzione, x = 2.","C":"ha infinite soluzioni.","D":"non ha soluzioni.","E":"ha due soluzioni, la cui somma è 9."},"correctAnswer":"A","explanationSteps":["Condizioni: x + 2 ≥ 0 e, poiché la radice è non negativa, x − 4 ≥ 0, cioè x ≥ 4.","Elevando al quadrato (con x ≥ 4): x + 2 = x² − 8x + 16, cioè x² − 9x + 14 = 0, con radici x = 2 e x = 7.","x = 2 non rispetta x ≥ 4: è una soluzione estranea introdotta dal quadrato.","x = 7 rispetta x ≥ 4 e verifica √9 = 3 = 7 − 4. L'unica soluzione è x = 7."],"distractorAnalysis":{"B":"Per x = 2: √4 = 2 ma x − 4 = −2; l'uguaglianza non è verificata.","C":"Il quadrato dell'equazione è di secondo grado: al più due soluzioni.","D":"x = 7 verifica l'equazione: √9 = 3 = 7 − 4.","E":"Elevando al quadrato si ottiene x² − 9x + 14 = 0 (radici 2 e 7), ma x = 2 non verifica x − 4 ≥ 0 ed è estranea."},"concept":"Equazioni irrazionali: condizioni di esistenza, elevamento al quadrato e controllo delle soluzioni estranee.","commonMistake":"Accettare tutte le radici dell'equazione elevata al quadrato senza verificare il segno del secondo membro."},{"id":"LM-016","section":"Logica, Matematica e Statistica","topic":"Algebra: disequazioni razionali fratte","difficulty":"difficile","question":"Le soluzioni della disequazione (x² − 3x + 2)/(x² − 4) ≤ 0 sono:","options":{"A":"−2 ≤ x ≤ 1","B":"x < −2 oppure 1 ≤ x < 2 oppure x > 2","C":"x ≤ 1, con x ≠ −2","D":"−2 < x ≤ 1 oppure x = 2","E":"−2 < x ≤ 1"},"correctAnswer":"E","explanationSteps":["Fattorizziamo: x² − 3x + 2 = (x − 1)(x − 2) e x² − 4 = (x − 2)(x + 2).","Condizioni di esistenza: x ≠ 2 e x ≠ −2.","Per x ≠ ±2 la frazione equivale a (x − 1)/(x + 2) ≤ 0.","Studio del segno: la frazione è ≤ 0 per −2 < x ≤ 1. Il valore x = 2 non rientra comunque nel dominio."],"distractorAnalysis":{"A":"x = −2 annulla il denominatore: va escluso.","B":"Sono le soluzioni della disequazione con verso ≥ 0 (errore di segno).","C":"Trascura il segno del denominatore: per x < −2 la frazione è positiva e la disequazione non è soddisfatta.","D":"x = 2 annulla il numeratore ma anche il denominatore: non appartiene al dominio, quindi non è soluzione."},"concept":"Disequazioni razionali fratte: semplificazione solo dopo aver fissato il dominio; studio del segno.","commonMistake":"Includere un valore che annulla sia numeratore sia denominatore, oppure ignorare il segno del denominatore."},{"id":"LM-017","section":"Logica, Matematica e Statistica","topic":"Algebra: equazioni con valori assoluti","difficulty":"media","question":"L'equazione |x − 1| + |x + 2| = 5, nell'incognita reale x:","options":{"A":"non ha soluzioni.","B":"ha un'unica soluzione.","C":"ha due soluzioni, la cui somma è −1.","D":"ha due soluzioni, la cui somma è 1.","E":"ha infinite soluzioni."},"correctAnswer":"C","explanationSteps":["I punti critici sono x = −2 e x = 1; si distinguono tre casi.","x < −2: −(x − 1) − (x + 2) = −2x − 1 = 5, quindi x = −3 (accettabile, perché −3 < −2).","−2 ≤ x ≤ 1: −(x − 1) + (x + 2) = 3; 3 = 5 è impossibile.","x > 1: (x − 1) + (x + 2) = 2x + 1 = 5, quindi x = 2 (accettabile, perché 2 > 1).","Le soluzioni sono −3 e 2: la somma è −1."],"distractorAnalysis":{"A":"Ha le soluzioni x = −3 e x = 2.","B":"Si trovano due soluzioni, una per ciascuna delle regioni esterne.","D":"Le soluzioni sono −3 e 2: la somma è −1, non 1 (errore di segno in x = −3).","E":"Nell'intervallo −2 ≤ x ≤ 1 la somma dei valori assoluti vale sempre 3, non 5: si avrebbero infinite soluzioni solo se il secondo membro fosse 3."},"concept":"Equazioni con valori assoluti: discussione per intervalli e verifica di ammissibilità.","commonMistake":"Risolvere ogni caso ma dimenticare di controllare che la soluzione appartenga all'intervallo considerato."},{"id":"LM-018","section":"Logica, Matematica e Statistica","topic":"Funzioni: equazioni logaritmiche","difficulty":"media","question":"L'equazione log₂(x + 1) + log₂(x − 1) = 3, nell'incognita reale x, ha come insieme delle soluzioni:","options":{"A":"{−3}","B":"{4}","C":"{3}","D":"∅","E":"{−3, 3}"},"correctAnswer":"C","explanationSteps":["Condizioni di esistenza: x + 1 > 0 e x − 1 > 0, quindi x > 1.","Per la proprietà del prodotto: log₂[(x + 1)(x − 1)] = 3, cioè x² − 1 = 2³ = 8.","Da x² = 9 si ottiene x = ±3; solo x = 3 rispetta x > 1.","Verifica: log₂(4) + log₂(2) = 2 + 1 = 3."],"distractorAnalysis":{"A":"x = −3 è fuori dominio, e inoltre non verifica l'equazione.","B":"Applica la regola errata log a + log b = log(a + b): si avrebbe log₂(2x) = 3, cioè x = 4.","D":"Esiste una soluzione ammissibile: x = 3 verifica log₂4 + log₂2 = 2 + 1 = 3.","E":"x = −3 non appartiene al dominio (x > 1): gli argomenti dei logaritmi sarebbero negativi."},"concept":"Logaritmi: somma di logaritmi come logaritmo del prodotto e condizioni di esistenza degli argomenti.","commonMistake":"Dimenticare le condizioni di esistenza oppure sommare gli argomenti invece di moltiplicarli."},{"id":"LM-019","section":"Logica, Matematica e Statistica","topic":"Funzioni: dominio e immagine di una funzione logaritmica","difficulty":"media","question":"Sia f(x) = log₃(9 − x²). Quale delle seguenti affermazioni è corretta?","options":{"A":"Il dominio è ℝ e l'immagine è ]−∞, 2].","B":"Il dominio è ]−3, 3[ e l'immagine è ]0, 9].","C":"Il dominio è [−3, 3] e l'immagine è ]−∞, 2].","D":"Il dominio è l'intervallo ]−3, 3[ e l'immagine è ]−∞, 2].","E":"Il dominio è ]−3, 3[ e l'immagine è [0, 2]."},"correctAnswer":"D","explanationSteps":["Dominio: 9 − x² > 0, cioè −3 < x < 3.","L'argomento t = 9 − x² assume tutti i valori in ]0, 9] (massimo 9 per x = 0, tende a 0⁺ ai bordi).","La funzione log₃ è crescente: f = log₃ t varia in ]−∞, log₃ 9] = ]−∞, 2].","Il massimo 2 è raggiunto in x = 0."],"distractorAnalysis":{"A":"Per |x| ≥ 3 l'argomento 9 − x² non è positivo: il dominio non è ℝ.","B":"Scambia l'immagine dell'argomento 9 − x² (che è ]0, 9]) con l'immagine di f.","C":"Agli estremi x = ±3 l'argomento vale 0 e il logaritmo non è definito: gli estremi vanno esclusi.","E":"Quando x si avvicina a ±3, 9 − x² tende a 0⁺ e f tende a −∞: l'immagine è illimitata inferiormente."},"concept":"Dominio e immagine di una funzione composta: immagine della funzione interna e monotonia del logaritmo.","commonMistake":"Confondere l'insieme dei valori dell'argomento del logaritmo con l'insieme dei valori della funzione."},{"id":"LM-020","section":"Logica, Matematica e Statistica","topic":"Geometria analitica: circonferenza e distanze","difficulty":"difficile","question":"Nel piano cartesiano Oxy, qual è la minima distanza tra l'origine O e i punti della circonferenza di equazione x² + y² − 4x + 6y + 9 = 0?","options":{"A":"2","B":"√13 + 2","C":"3","D":"√13","E":"√13 − 2"},"correctAnswer":"E","explanationSteps":["Completiamo i quadrati: (x − 2)² + (y + 3)² = 4 + 9 − 9 = 4. Centro C(2, −3), raggio r = 2.","Distanza OC = √(2² + 3²) = √13 ≈ 3,61 > 2, quindi O è esterno alla circonferenza.","Per un punto esterno, la distanza minima dalla circonferenza è OC − r, la massima è OC + r.","Minima distanza: √13 − 2."],"distractorAnalysis":{"A":"È il raggio della circonferenza.","B":"È la massima distanza tra O e la circonferenza (si somma il raggio invece di sottrarlo).","C":"È la lunghezza del segmento di tangente da O: √(OC² − r²) = √(13 − 4) = 3, non la distanza minima.","D":"È la distanza di O dal centro C(2, −3), non dalla circonferenza."},"concept":"Equazione della circonferenza, centro e raggio; distanza minima da un punto esterno: d − r.","commonMistake":"Sommare il raggio invece di sottrarlo, oppure usare la lunghezza della tangente come distanza."},{"id":"LM-021","section":"Logica, Matematica e Statistica","topic":"Geometria solida: sfera circoscritta a un cubo","difficulty":"media","question":"Un cubo è inscritto in una sfera (tutti i suoi vertici appartengono alla superficie sferica). Qual è il rapporto tra il volume della sfera e il volume del cubo?","options":{"A":"π/6","B":"π√2/3","C":"π√3/2","D":"4π/3","E":"4π√3"},"correctAnswer":"C","explanationSteps":["Sia a lo spigolo del cubo. La diagonale del cubo misura a√3 ed è un diametro della sfera: r = a√3/2.","Volume sfera: (4/3)π r³ = (4/3)π · (3√3/8) a³ = (π√3/2) a³.","Volume cubo: a³.","Rapporto: π√3/2 ≈ 2,72."],"distractorAnalysis":{"A":"È il rapporto tra il volume della sfera inscritta nel cubo (r = a/2) e quello del cubo.","B":"Corrisponde a una sfera di raggio a√2/2 (semidiagonale di una faccia), che non passa per i vertici.","D":"Corrisponde a una sfera di raggio pari allo spigolo a, non alla semidiagonale del cubo.","E":"Usa l'intera diagonale a√3 come raggio invece di a√3/2."},"concept":"Geometria solida elementare: diagonale del cubo, sfera circoscritta, volumi.","commonMistake":"Scegliere come raggio lo spigolo, la semidiagonale di una faccia oppure l'intera diagonale."},{"id":"LM-022","section":"Logica, Matematica e Statistica","topic":"Trigonometria: teorema dei seni","difficulty":"media","question":"In un triangolo ABC l'angolo in A misura 45°, l'angolo in B misura 60° e il lato BC è lungo 4√2 cm. Quanto è lungo il lato AC?","options":{"A":"4 cm","B":"8√3/3 cm","C":"4√2 cm","D":"4√3 cm","E":"8 cm"},"correctAnswer":"D","explanationSteps":["BC è opposto all'angolo A (45°) e AC è opposto all'angolo B (60°).","Teorema dei seni: BC / sin A = AC / sin B.","BC / sin 45° = 4√2 / (√2/2) = 8, quindi AC = 8 · sin 60° = 8 · √3/2 = 4√3 cm."],"distractorAnalysis":{"A":"Corrisponde a BC/√2: ignora il rapporto tra i seni dei due angoli.","B":"Inverte il rapporto: AC = BC · sin A / sin B invece di BC · sin B / sin A.","C":"È la lunghezza di BC, già data, non di AC.","E":"È BC/sin A, cioè il diametro della circonferenza circoscritta, non il lato AC."},"concept":"Teorema dei seni: ciascun lato è proporzionale al seno dell'angolo opposto, con costante 2R.","commonMistake":"Associare un lato all'angolo adiacente invece che all'angolo opposto."},{"id":"LM-023","section":"Logica, Matematica e Statistica","topic":"Statistica: conteggio (disposizioni con vincolo)","difficulty":"media","question":"Con le cifre 1, 2, 3, 4, 5, 6, ciascuna utilizzabile al più una volta in ogni numero, si formano numeri di quattro cifre. Quanti di essi sono pari?","options":{"A":"120","B":"180","C":"216","D":"360","E":"720"},"correctAnswer":"B","explanationSteps":["Un numero è pari se la cifra delle unità è pari: 2, 4 o 6, cioè 3 scelte.","Le tre cifre rimanenti si scelgono tra le 5 cifre rimaste, in ordine: 5 · 4 · 3 = 60 modi.","Totale: 3 · 60 = 180.","Controllo: i numeri con quattro cifre distinte sono 360; metà sono pari, perché tre cifre su sei sono pari."],"distractorAnalysis":{"A":"Considera soltanto due cifre pari possibili (2·5·4·3), dimenticando il 6.","C":"È 6³: corrisponde a un conteggio con ripetizioni, non a cifre tutte distinte.","D":"Conta tutti i numeri di quattro cifre distinte (6·5·4·3), senza il vincolo di parità.","E":"È 6!: conta le permutazioni di tutte e sei le cifre, ma ne servono solo quattro."},"concept":"Principio moltiplicativo e disposizioni semplici: si sceglie prima la cifra con il vincolo.","commonMistake":"Contare prima le cifre libere e solo dopo applicare il vincolo sull'ultima cifra, perdendo scelte."},{"id":"LM-024","section":"Logica, Matematica e Statistica","topic":"Statistica: probabilità tramite conteggi","difficulty":"media","question":"Un'urna contiene 5 palline rosse e 3 palline blu. Se ne estraggono due senza reinserimento. Qual è la probabilità che siano dello stesso colore?","options":{"A":"13/28","B":"5/14","C":"15/28","D":"17/32","E":"1/2"},"correctAnswer":"A","explanationSteps":["Casi possibili: C(8, 2) = 28 coppie non ordinate.","Due rosse: C(5, 2) = 10 coppie; due blu: C(3, 2) = 3 coppie.","Casi favorevoli: 10 + 3 = 13.","Probabilità: 13/28. (Controllo: (5/8)(4/7) + (3/8)(2/7) = 26/56 = 13/28.)"],"distractorAnalysis":{"B":"È la probabilità di estrarre due palline rosse (10/28), trascurando il caso di due blu.","C":"È la probabilità che le due palline siano di colori diversi (1 − 13/28).","D":"È la probabilità nel caso di estrazioni con reinserimento: (5/8)² + (3/8)².","E":"Non deriva da alcun conteggio: non tiene conto della composizione dell'urna."},"concept":"Probabilità come rapporto tra casi favorevoli e possibili; combinazioni; estrazioni senza reinserimento.","commonMistake":"Usare le probabilità del caso con reinserimento, oppure considerare un solo colore."},{"id":"LM-025","section":"Logica, Matematica e Statistica","topic":"Statistica: media e deviazione standard dopo una trasformazione lineare","difficulty":"difficile","question":"Un insieme di dati ha media 12 e deviazione standard 3. Ogni dato x viene sostituito con 2x − 5. Quali sono la media e la deviazione standard del nuovo insieme di dati?","options":{"A":"Media 19, deviazione standard 3","B":"Media 19, deviazione standard 1","C":"Media 19, deviazione standard 36","D":"Media 19, deviazione standard 6","E":"Media 24, deviazione standard 6"},"correctAnswer":"D","explanationSteps":["Per la trasformazione lineare y = ax + b la media diventa a·media + b: 2 · 12 − 5 = 19.","La traslazione b non cambia la dispersione; il fattore a moltiplica la deviazione standard per |a|: 2 · 3 = 6.","(La varianza si moltiplica per a²: 4 · 9 = 36, quindi la deviazione standard è √36 = 6.)"],"distractorAnalysis":{"A":"Ritiene che la deviazione standard non cambi: ma il fattore 2 moltiplica la dispersione.","B":"Applica la trasformazione 2x − 5 anche alla deviazione standard: ma la traslazione non influisce sulla dispersione.","C":"36 = 2² · 3² è la varianza del nuovo insieme di dati, non la deviazione standard.","E":"Dimentica la traslazione −5 nel calcolo della media: 2 · 12 = 24."},"concept":"Proprietà di media e deviazione standard per trasformazioni lineari: μ' = aμ + b, σ' = |a|σ.","commonMistake":"Applicare la traslazione alla deviazione standard, oppure confondere varianza e deviazione standard."},{"id":"FI-001","section":"Fisica","topic":"Meccanica: forza elastica, oscillazioni e conservazione dell'energia","difficulty":"media","question":"Una massa di 0,50 kg, appoggiata su un piano orizzontale liscio, è fissata a una molla ideale di costante elastica 200 N/m. La massa viene spostata di 10 cm dalla posizione di riposo e poi rilasciata da ferma. Qual è il modulo della sua velocità massima?","options":{"A":"1,4 m/s","B":"2,0 m/s","C":"4,0 m/s","D":"20 m/s","E":"40 m/s"},"correctAnswer":"B","explanationSteps":["Non ci sono attriti: l'energia meccanica si conserva. Nella posizione di massima elongazione l'energia è tutta elastica.","E = ½kx² = ½ · 200 · (0,10)² = 1,0 J.","La velocità è massima nella posizione di riposo, dove l'energia è tutta cinetica: ½mv² = 1,0 J.","v = √(2E/m) = √(2 · 1,0 / 0,50) = 2,0 m/s. (Equivalente: v = x√(k/m) = 0,10 · 20.)"],"distractorAnalysis":{"A":"Si ottiene da E = mv² invece di E = ½mv² (fattore 2 dimenticato): v = √2 m/s.","C":"È il valore di v² = 2E/m: manca l'estrazione della radice quadrata.","D":"È ω = √(k/m): manca la moltiplicazione per l'ampiezza (0,10 m).","E":"Corrisponde all'accelerazione massima kx/m = 40 m/s² (unità di misura diversa)."},"concept":"Moto armonico semplice e conservazione dell'energia: ½kA² = ½mv²max.","commonMistake":"Dimenticare il fattore ½ nell'energia cinetica o confondere velocità massima e accelerazione massima."},{"id":"FI-002","section":"Fisica","topic":"Termodinamica: rendimento di una macchina termica ideale","difficulty":"media","question":"Una macchina termica ideale (reversibile) lavora tra due sorgenti alle temperature di 127 °C e 27 °C e assorbe 1200 J di calore dalla sorgente calda in ogni ciclo. Quanto lavoro produce per ciclo?","options":{"A":"300 J","B":"400 J","C":"900 J","D":"945 J","E":"1200 J"},"correctAnswer":"A","explanationSteps":["Convertiamo in kelvin: T₁ = 127 + 273 = 400 K; T₂ = 27 + 273 = 300 K.","Rendimento di Carnot: η = 1 − T₂/T₁ = 1 − 300/400 = 0,25.","Lavoro: W = η · Q₁ = 0,25 · 1200 J = 300 J.","Calore ceduto: Q₂ = 1200 − 300 = 900 J."],"distractorAnalysis":{"B":"Usa η = (T₁ − T₂)/T₂ = 100/300 invece di dividere per la temperatura della sorgente calda.","C":"È il calore ceduto alla sorgente fredda (1200 − 300), non il lavoro prodotto.","D":"Calcola il rendimento con le temperature in °C: 1 − 27/127 ≈ 0,79; il rendimento va calcolato in kelvin.","E":"Corrisponde a un rendimento del 100%, impossibile per il secondo principio."},"concept":"Secondo principio, ciclo di Carnot e temperatura assoluta: η = 1 − T_fredda/T_calda (in kelvin).","commonMistake":"Usare le temperature in gradi Celsius nella formula del rendimento."},{"id":"FI-003","section":"Fisica","topic":"Elettromagnetismo: circuiti, legge di Ohm e potenza","difficulty":"difficile","question":"Un generatore ideale da 12 V alimenta un circuito formato da un resistore R₃ = 40 Ω in serie con il parallelo di R₁ = 30 Ω e R₂ = 60 Ω. Quale potenza viene dissipata nel resistore R₂?","options":{"A":"0,27 W","B":"0,53 W","C":"0,60 W","D":"1,6 W","E":"2,4 W"},"correctAnswer":"A","explanationSteps":["Resistenza del parallelo: R₁₂ = (30 · 60)/(30 + 60) = 20 Ω.","Resistenza totale: R_tot = 20 + 40 = 60 Ω; corrente erogata I = 12/60 = 0,20 A.","Tensione ai capi del parallelo: V₁₂ = I · R₁₂ = 0,20 · 20 = 4,0 V (lo stesso valore su R₁ e su R₂).","Potenza in R₂: P = V₁₂²/R₂ = 16/60 ≈ 0,27 W."],"distractorAnalysis":{"B":"È la potenza dissipata da R₁ (16/30 W), non da R₂.","C":"Suppone che la corrente di 0,2 A si divida in parti uguali (0,1 A per ramo): ma le correnti sono inversamente proporzionali alle resistenze.","D":"È la potenza dissipata da R₃ (0,2 A)² · 40 Ω.","E":"È la potenza totale erogata dal generatore (12 V · 0,2 A), oppure V²/R₂ con V = 12 V."},"concept":"Resistenze in serie e in parallelo, legge di Ohm, potenza dissipata P = V²/R.","commonMistake":"Applicare ai capi di R₂ l'intera tensione del generatore, dimenticando la caduta su R₃."},{"id":"FI-004","section":"Fisica","topic":"Onde: interferenza e differenza di cammino","difficulty":"media","question":"Due altoparlanti identici, in fase tra loro, emettono la stessa nota di frequenza 340 Hz; la velocità del suono è 340 m/s. Un microfono si trova in un punto P distante 5,0 m da un altoparlante e 5,5 m dall'altro. Che cosa si registra in P (supponendo che le due onde abbiano in P la stessa ampiezza)?","options":{"A":"Non c'è interferenza, perché la differenza di cammino è minore della lunghezza d'onda.","B":"Interferenza costruttiva: l'ampiezza raddoppia.","C":"Si registra un suono di frequenza doppia.","D":"Né costruttiva né distruttiva, perché le onde sono sfasate di un quarto di periodo.","E":"Interferenza distruttiva: le due onde si annullano."},"correctAnswer":"E","explanationSteps":["Lunghezza d'onda: λ = v/f = 340/340 = 1,0 m.","Differenza di cammino: Δ = 5,5 − 5,0 = 0,5 m = λ/2.","Una differenza di cammino pari a un multiplo dispari di λ/2 (con sorgenti in fase) dà onde in opposizione di fase.","Con ampiezze uguali la somma si annulla: interferenza distruttiva."],"distractorAnalysis":{"A":"L'interferenza si verifica sempre quando due onde coerenti si sovrappongono; ciò che conta è il rapporto Δ/λ.","B":"Si avrebbe se la differenza di cammino fosse un multiplo intero di λ (0; 1,0 m; …); qui vale λ/2.","C":"L'interferenza non modifica la frequenza delle onde: ne cambia solo l'ampiezza risultante.","D":"Una differenza di cammino di λ/2 corrisponde a uno sfasamento di mezzo periodo (180°), non di un quarto."},"concept":"Interferenza di onde coerenti: condizioni Δ = nλ (costruttiva) e Δ = (n + ½)λ (distruttiva).","commonMistake":"Confrontare la differenza di cammino con la lunghezza d'onda senza distinguere multipli interi e semi-interi."},{"id":"FI-005","section":"Fisica","topic":"Struttura della materia: livelli energetici e fotoni","difficulty":"media","question":"Nell'atomo di idrogeno i livelli energetici sono dati da Eₙ = −13,6 eV/n². Un elettrone passa dal livello n = 3 al livello n = 2 emettendo un fotone. Qual è l'energia del fotone emesso?","options":{"A":"1,51 eV","B":"1,89 eV","C":"3,40 eV","D":"10,2 eV","E":"12,1 eV"},"correctAnswer":"B","explanationSteps":["L'energia del fotone emesso è la differenza tra le energie dei due livelli: E_fotone = E₃ − E₂.","E₃ = −13,6/9 = −1,51 eV; E₂ = −13,6/4 = −3,40 eV.","E_fotone = −1,51 − (−3,40) = 1,89 eV.","(Corrisponde a λ = hc/E ≈ 656 nm, luce rossa della serie di Balmer.)"],"distractorAnalysis":{"A":"È il modulo dell'energia del livello n = 3 (13,6/9), non la differenza tra due livelli.","C":"È il modulo dell'energia del livello n = 2 (13,6/4), non la differenza tra due livelli.","D":"È l'energia del fotone emesso nella transizione n = 2 → n = 1.","E":"È l'energia del fotone emesso nella transizione n = 3 → n = 1."},"concept":"Quantizzazione dell'energia e fotoni: E_fotone = Eᵢ − E_f = hf.","commonMistake":"Prendere l'energia di un singolo livello invece della differenza tra livello iniziale e finale."},{"id":"EN-001","section":"Inglese","topic":"Present continuous vs present simple","difficulty":"facile","question":"Listen! Somebody ______ in the next room.","options":{"A":"sings","B":"are singing","C":"has sung","D":"is singing","E":"sing"},"correctAnswer":"D","explanationSteps":["L'imperativo «Listen!» segnala un'azione in corso nel momento in cui si parla: serve il present continuous.","«Somebody» è un soggetto singolare, quindi l'ausiliare è «is»: «is singing»."],"distractorAnalysis":{"A":"Present simple: indica abitudini o fatti generali, non un'azione in corso adesso.","B":"Il tempo è giusto, ma «are» non concorda con il soggetto singolare «somebody».","C":"Present perfect: esprime un'azione conclusa con rilevanza presente, incompatibile con «Listen!».","E":"Forma base senza -s della terza persona singolare; inoltre il tempo non è adatto."},"concept":"Il present continuous (am/is/are + -ing) descrive azioni in corso al momento del discorso; somebody/someone/everybody richiedono la terza persona singolare.","commonMistake":"Usare il present simple per un'azione in corso («sings»), per influenza dell'italiano «qualcuno canta»."},{"id":"EN-002","section":"Inglese","topic":"Present perfect con since / for","difficulty":"facile","question":"My cousin has worked for this company ______ 2019.","options":{"A":"for","B":"during","C":"from","D":"since","E":"ago"},"correctAnswer":"D","explanationSteps":["Il verbo è al present perfect («has worked»): l'azione è iniziata nel passato e continua fino ad ora.","«2019» è un punto di inizio nel tempo, quindi si usa «since»; «for» introdurrebbe una durata (for five years)."],"distractorAnalysis":{"A":"«for» si usa con una durata («for six years»), non con una data.","B":"«during» introduce un periodo o un evento («during the summer»), non il punto di inizio.","C":"«from» richiede di norma «to/until» e non si abbina al present perfect per indicare l'inizio.","E":"«ago» segue una quantità di tempo e si usa con il past simple («five years ago»)."},"concept":"Con il present perfect, since + punto di inizio (data, evento) e for + durata.","commonMistake":"Confondere for e since, traducendo entrambi con «da»."},{"id":"EN-003","section":"Inglese","topic":"Present perfect passive","difficulty":"media","question":"Several roads in the city centre ______ closed since the storm.","options":{"A":"have been","B":"are","C":"were","D":"has been","E":"will be"},"correctAnswer":"A","explanationSteps":["«since the storm» richiede il present perfect: la strada è chiusa da allora e lo è ancora.","La forma passiva del present perfect è have/has + been + participio; il soggetto «roads» è plurale, quindi «have been closed»."],"distractorAnalysis":{"B":"Present simple: non si combina con «since» per indicare una situazione iniziata nel passato.","C":"Past simple: indica un fatto concluso e non è compatibile con «since».","D":"«has» non concorda con il soggetto plurale «roads».","E":"Futuro: incompatibile con «since the storm», che rimanda al passato."},"concept":"Il passivo del present perfect si forma con have/has been + past participle e si usa con since/for.","commonMistake":"Usare il present simple o il past simple con «since», perché in italiano si dice «sono chiuse da»."},{"id":"EN-004","section":"Inglese","topic":"Past perfect","difficulty":"media","question":"By the time we got to the station, the train ______.","options":{"A":"left","B":"has left","C":"was leaving","D":"leaves","E":"had left"},"correctAnswer":"E","explanationSteps":["«By the time we got» colloca un momento nel passato (il nostro arrivo).","La partenza del treno è anteriore a quel momento: serve il past perfect, «had left»."],"distractorAnalysis":{"A":"Past simple: presenterebbe la partenza come successiva o contemporanea al nostro arrivo, non anteriore.","B":"Present perfect: collega l'azione al presente, ma il contesto è tutto al passato.","C":"Past continuous: descrive un'azione in svolgimento, mentre qui la partenza è già avvenuta.","D":"Present simple: tempo incompatibile con un contesto al passato."},"concept":"Il past perfect (had + participio) esprime un'azione conclusa prima di un altro momento o evento passato; «by the time» lo richiede spesso.","commonMistake":"Usare il past simple per entrambe le azioni, perdendo la relazione di anteriorità."},{"id":"EN-005","section":"Inglese","topic":"Present continuous per il futuro programmato","difficulty":"media","question":"I can't meet you on Friday evening because I ______ my grandparents for dinner.","options":{"A":"visited","B":"am visiting","C":"visit","D":"have visited","E":"visiting"},"correctAnswer":"B","explanationSteps":["Il contesto è un impegno già organizzato per un momento futuro («Friday evening»).","Per un accordo personale già preso si usa il present continuous con valore di futuro: «am visiting»."],"distractorAnalysis":{"A":"Past simple: riferisce a un fatto passato, in contrasto con «Friday evening» futuro.","C":"Present simple: serve per orari e calendari ufficiali o per abitudini, non per un impegno personale.","D":"Present perfect: indica un'esperienza o un'azione passata con rilevanza presente.","E":"Manca l'ausiliare «am»: il participio presente da solo non forma un tempo verbale."},"concept":"Il present continuous si usa per il futuro quando si tratta di accordi o programmi già definiti.","commonMistake":"Usare il present simple («I visit») per traslitterare l'italiano «io vado a trovare»."},{"id":"EN-006","section":"Inglese","topic":"Second conditional","difficulty":"media","question":"If I ______ more money, I would buy a faster computer.","options":{"A":"have","B":"will have","C":"had","D":"would have","E":"am having"},"correctAnswer":"C","explanationSteps":["La principale usa «would buy»: si tratta di un periodo ipotetico di secondo tipo (ipotesi irreale o improbabile).","Nella subordinata introdotta da «if» si usa il past simple: «had»."],"distractorAnalysis":{"A":"Present simple: appartiene al first conditional, che richiede «will» nella principale.","B":"«will» non si usa dopo «if» in un periodo ipotetico di questo tipo.","D":"«would» non compare nella subordinata con «if» in questa struttura.","E":"Present continuous: non è la forma richiesta dal secondo condizionale."},"concept":"Second conditional: If + past simple, would + infinito senza «to».","commonMistake":"Inserire «would» anche dopo «if» («If I would have...»)."},{"id":"EN-007","section":"Inglese","topic":"Third conditional","difficulty":"media","question":"If she had studied harder, she ______ the exam.","options":{"A":"would pass","B":"had passed","C":"will pass","D":"passed","E":"would have passed"},"correctAnswer":"E","explanationSteps":["«had studied» (past perfect) introduce un'ipotesi irrealizzata nel passato.","La principale del third conditional è «would have + participio»: «would have passed»."],"distractorAnalysis":{"A":"«would pass» appartiene al second conditional e riferisce al presente o al futuro.","B":"Past perfect nella principale: è la forma della subordinata, non della principale.","C":"«will pass» appartiene al first conditional.","D":"Past simple: non esprime il risultato ipotetico richiesto."},"concept":"Third conditional: If + past perfect, would have + participio passato (ipotesi irrealizzata nel passato).","commonMistake":"Mescolare i tipi di condizionale, ad esempio past perfect + would + infinito."},{"id":"EN-008","section":"Inglese","topic":"Past simple passive","difficulty":"facile","question":"The old bridge ______ by a Spanish company in 2015.","options":{"A":"was built","B":"built","C":"has built","D":"is building","E":"is built"},"correctAnswer":"A","explanationSteps":["Il ponte subisce l'azione e compare l'agente «by a Spanish company»: serve il passivo.","La data «in 2015» richiede il past simple, quindi «was built»."],"distractorAnalysis":{"B":"Forma attiva del past simple: la frase resterebbe senza verbo reggente coerente con il soggetto.","C":"Present perfect attivo: inadatto con una data precisa e con il soggetto che subisce l'azione.","D":"Present continuous attivo: non esprime il passivo e non si accorda con «in 2015».","E":"Passivo al presente: incompatibile con una data passata."},"concept":"Il passivo si forma con il verbo «to be» al tempo adatto + participio passato; l'agente è introdotto da «by».","commonMistake":"Usare la forma attiva quando il soggetto subisce l'azione."},{"id":"EN-009","section":"Inglese","topic":"Modali al passivo","difficulty":"media","question":"This report ______ by Friday, or the client will cancel the contract.","options":{"A":"must finish","B":"must finishing","C":"must have finished","D":"must be finished","E":"must be finish"},"correctAnswer":"D","explanationSteps":["Il report non può terminare da sé: qualcuno deve completarlo, quindi serve il passivo.","Il passivo con un verbo modale ha la forma modale + be + participio passato: «must be finished»."],"distractorAnalysis":{"A":"Forma attiva: il soggetto «report» non può eseguire l'azione.","B":"Dopo un modale non si usa la forma in -ing.","C":"«must have + participio» esprime una deduzione sul passato, non un obbligo futuro.","E":"Dopo «be» serve il participio passato («finished»), non l'infinito."},"concept":"Passivo con modale: modal + be + past participle.","commonMistake":"Omettere il participio passato dopo «be» o usare la forma attiva con soggetto inanimato."},{"id":"EN-010","section":"Inglese","topic":"Verbi modali di deduzione","difficulty":"media","question":"The lights are off and nobody answers the door, so they ______ be at home.","options":{"A":"can't","B":"mustn't","C":"needn't","D":"shouldn't","E":"don't"},"correctAnswer":"A","explanationSteps":["Luci spente e nessuna risposta portano a una deduzione negativa: è quasi certo che non siano in casa.","Per una deduzione negativa si usa «can't» (e non «mustn't», che esprime divieto)."],"distractorAnalysis":{"B":"«mustn't» indica un divieto, non una deduzione.","C":"«needn't» indica assenza di necessità.","D":"«shouldn't» indica un consiglio o una raccomandazione.","E":"«don't» non può precedere «be» senza ausiliare: «don't be at home» non è una frase corretta."},"concept":"Deduzione: must (affermativa) / can't (negativa); mustn't esprime divieto.","commonMistake":"Usare «mustn't» come negazione di «must» di deduzione."},{"id":"EN-011","section":"Inglese","topic":"Assenza di obbligo vs divieto","difficulty":"media","question":"You ______ bring your laptop to the lesson; the school provides computers for everyone.","options":{"A":"mustn't","B":"don't have to","C":"can't","D":"may not","E":"won't"},"correctAnswer":"B","explanationSteps":["Poiché la scuola fornisce i computer, portare il proprio non è necessario: si esprime assenza di obbligo.","L'assenza di obbligo si rende con «don't have to»; «mustn't» indicherebbe un divieto."],"distractorAnalysis":{"A":"«mustn't» esprime divieto: non è coerente con la seconda parte della frase.","C":"«can't» indica impossibilità o divieto.","D":"«may not» indica che non è permesso.","E":"«won't» indica rifiuto o previsione futura, non assenza di obbligo."},"concept":"don't have to = non è necessario; mustn't = è vietato.","commonMistake":"Tradurre «non devi» sempre con «mustn't»."},{"id":"EN-012","section":"Inglese","topic":"Articoli: a / an","difficulty":"facile","question":"My sister works as ______ engineer for a Dutch company.","options":{"A":"a","B":"the","C":"some","D":"- - - -","E":"an"},"correctAnswer":"E","explanationSteps":["«engineer» è un nome singolare numerabile che indica una professione: richiede l'articolo indeterminativo.","«engineer» inizia con un suono vocalico, quindi si usa «an»."],"distractorAnalysis":{"A":"«a» si usa davanti a un suono consonantico.","B":"«the» è determinativo: non adatto per indicare una professione in generale.","C":"«some» non si usa con nomi singolari numerabili.","D":"Un nome singolare numerabile non può restare senza determinante."},"concept":"L'articolo indeterminativo è a davanti a suono consonantico e an davanti a suono vocalico; con le professioni si usa dopo «as» o «be».","commonMistake":"Dimenticare l'articolo con le professioni, come in italiano («lavora come ingegnere»)."},{"id":"EN-013","section":"Inglese","topic":"Assenza dell'articolo con nomi propri geografici","difficulty":"media","question":"______ Mount Everest is the highest mountain in the world.","options":{"A":"The","B":"A","C":"An","D":"- - - -","E":"This"},"correctAnswer":"D","explanationSteps":["I nomi di singole montagne (Mount Everest, Mont Blanc) non vogliono l'articolo.","L'articolo «the» si usa invece con le catene montuose, come «the Alps»."],"distractorAnalysis":{"A":"«The» si usa con catene montuose, non con singole vette.","B":"L'articolo indeterminativo non si usa con un nome proprio unico.","C":"Stesso errore: «an» non si usa con un nome proprio.","E":"Il dimostrativo non è adatto a un'affermazione generale su un luogo noto."},"concept":"Zero article con nomi propri di singole montagne; the con catene montuose.","commonMistake":"Aggiungere «the» perché in italiano si dice «il Monte Everest»."},{"id":"EN-014","section":"Inglese","topic":"Quantificatori con nomi non numerabili","difficulty":"facile","question":"There isn't ______ milk left. Could you buy some when you go out?","options":{"A":"many","B":"a few","C":"much","D":"several","E":"few"},"correctAnswer":"C","explanationSteps":["«milk» è un nome non numerabile.","Nelle frasi negative con nomi non numerabili si usa «much»; gli altri quantificatori richiedono nomi plurali."],"distractorAnalysis":{"A":"«many» si usa con nomi plurali numerabili.","B":"«a few» si usa con nomi plurali numerabili.","D":"«several» si usa con nomi plurali numerabili.","E":"«few» si usa con nomi plurali numerabili."},"concept":"much + non numerabile; many + numerabile plurale.","commonMistake":"Usare «many» con sostantivi non numerabili come milk, water, money."},{"id":"EN-015","section":"Inglese","topic":"little / a little / few / a few","difficulty":"difficile","question":"We have very ______ time before the train leaves, so we must hurry.","options":{"A":"few","B":"a few","C":"a little","D":"little","E":"much"},"correctAnswer":"D","explanationSteps":["«time» è non numerabile, quindi servono «little» o «a little».","Il contesto («we must hurry») ha valore negativo: il tempo è quasi nullo. «very little» ha questo significato, mentre «a little» ha senso positivo e non si combina con «very»."],"distractorAnalysis":{"A":"«few» si usa con nomi plurali numerabili.","B":"«a few» si usa con nomi plurali numerabili.","C":"«a little» ha valore positivo e non si usa dopo «very».","E":"«very much time» non è una combinazione naturale in una frase affermativa."},"concept":"little = poco (quasi niente), a little = un po'; con nomi non numerabili.","commonMistake":"Confondere little e a little, che differiscono per valore positivo o negativo."},{"id":"EN-016","section":"Inglese","topic":"Preposizioni di tempo: by / until","difficulty":"media","question":"Please send me the final version of the report ______ Friday at the latest.","options":{"A":"by","B":"until","C":"during","D":"since","E":"for"},"correctAnswer":"A","explanationSteps":["«at the latest» indica un termine massimo entro cui l'azione deve essere compiuta.","Per un limite temporale si usa «by» (entro)."],"distractorAnalysis":{"B":"«until» indica che una situazione continua fino a quel momento, non una scadenza.","C":"«during» indica un'azione dentro un periodo o evento.","D":"«since» indica il punto di inizio di una situazione che continua.","E":"«for» indica una durata, non un termine."},"concept":"by = entro (scadenza); until = fino a (durata continuata).","commonMistake":"Usare «until» per «entro»."},{"id":"EN-017","section":"Inglese","topic":"Preposizioni dopo aggettivi","difficulty":"facile","question":"Sofia is very good ______ solving logic puzzles.","options":{"A":"in","B":"with","C":"at","D":"on","E":"for"},"correctAnswer":"C","explanationSteps":["L'aggettivo «good» regge «at» quando indica abilità in un'attività.","Dopo la preposizione il verbo va alla forma in -ing: «at solving»."],"distractorAnalysis":{"A":"«good in» non si usa per indicare abilità in un'attività.","B":"«good with» si usa per persone o strumenti («good with children»).","D":"«good on» non è la collocazione richiesta.","E":"«good for» indica utilità o beneficio, non abilità."},"concept":"good at + sostantivo o gerundio = bravo in.","commonMistake":"Usare «in» per influenza dell'italiano «bravo in»."},{"id":"EN-018","section":"Inglese","topic":"Comparativo doppio: the more..., the better","difficulty":"media","question":"The more you practise, ______ you become.","options":{"A":"better","B":"the better","C":"the best","D":"more good","E":"the more good"},"correctAnswer":"B","explanationSteps":["La struttura «the + comparativo, the + comparativo» esprime due variazioni proporzionali.","Il comparativo di «good» è «better»: «the better»."],"distractorAnalysis":{"A":"Manca l'articolo «the» richiesto dalla struttura.","C":"«the best» è un superlativo.","D":"«more good» non esiste: il comparativo di good è «better».","E":"Forma errata del comparativo irregolare."},"concept":"The + comparativo, the + comparativo = più... più...; good, better, best.","commonMistake":"Omettere «the» o usare «more good»."},{"id":"EN-019","section":"Inglese","topic":"used to per abitudini passate","difficulty":"media","question":"When I was a child, I ______ swim in the river every summer.","options":{"A":"used to","B":"use to","C":"was used to","D":"am used to","E":"using to"},"correctAnswer":"A","explanationSteps":["L'azione è un'abitudine passata, ormai non più valida: si usa «used to + infinito».","«be used to» è un'altra costruzione e significa «essere abituato a», seguita da -ing."],"distractorAnalysis":{"B":"«use to» si usa solo in negative e interrogative con «did» («didn't use to»).","C":"«was used to» richiede un gerundio o un nome, non l'infinito.","D":"«am used to» è al presente e richiede anch'esso un gerundio.","E":"Forma in -ing priva di ausiliare."},"concept":"used to + infinito per abitudini passate; be used to + -ing per l'abitudine presente.","commonMistake":"Confondere «used to» e «be used to»."},{"id":"EN-020","section":"Inglese","topic":"Pronomi relativi: whose","difficulty":"media","question":"The man ______ car was stolen called the police.","options":{"A":"who","B":"which","C":"that","D":"whom","E":"whose"},"correctAnswer":"E","explanationSteps":["La relativa esprime possesso: la macchina appartiene all'uomo.","Il pronome relativo che esprime possesso è «whose»."],"distractorAnalysis":{"A":"«who» è soggetto o complemento riferito a persone, ma non esprime possesso.","B":"«which» si riferisce a cose.","C":"«that» non può esprimere possesso.","D":"«whom» è la forma oggetto riferita a persone."},"concept":"whose + nome esprime possesso e vale sia per persone sia per cose.","commonMistake":"Usare «who» o «that» davanti a un sostantivo posseduto."},{"id":"EN-021","section":"Inglese","topic":"Pronomi relativi: where","difficulty":"media","question":"That's the small hotel ______ we stayed last summer.","options":{"A":"which","B":"who","C":"where","D":"whose","E":"when"},"correctAnswer":"C","explanationSteps":["L'antecedente «hotel» è un luogo e la relativa indica dove si è soggiornato.","Il relativo di luogo è «where»; «which» richiederebbe una preposizione («in which»)."],"distractorAnalysis":{"A":"«which» senza preposizione lascia la frase incompleta («which we stayed» non è corretto).","B":"«who» si riferisce a persone.","D":"«whose» esprime possesso.","E":"«when» introduce una relativa di tempo."},"concept":"where introduce una relativa che specifica un luogo.","commonMistake":"Usare «which» senza la preposizione («in which»)."},{"id":"EN-022","section":"Inglese","topic":"Gerundio dopo enjoy","difficulty":"facile","question":"She enjoys ______ new languages, so she's studying Korean this year.","options":{"A":"to learn","B":"learn","C":"to learning","D":"learning","E":"learns"},"correctAnswer":"D","explanationSteps":["Il verbo «enjoy» è seguito da un altro verbo in forma -ing.","Quindi si usa «learning»."],"distractorAnalysis":{"A":"Dopo «enjoy» non si usa l'infinito con «to».","B":"L'infinito senza «to» non è la forma richiesta da «enjoy».","C":"«to learning» è una combinazione errata.","E":"Forma coniugata: dopo «enjoys» non può seguire un altro verbo coniugato."},"concept":"Verbi seguiti dal gerundio: enjoy, avoid, finish, mind, suggest.","commonMistake":"Usare l'infinito dopo «enjoy», come in italiano («ama imparare»)."},{"id":"EN-023","section":"Inglese","topic":"Reported speech: backshift","difficulty":"media","question":"He told me that he ______ the report the day before.","options":{"A":"finishes","B":"had finished","C":"has finished","D":"will finish","E":"was finish"},"correctAnswer":"B","explanationSteps":["Il verbo introduttivo «told» è al passato e «the day before» colloca l'azione prima di quel momento.","Nel discorso indiretto, l'azione anteriore si esprime con il past perfect: «had finished»."],"distractorAnalysis":{"A":"Present simple: non rispetta la concordanza dei tempi.","C":"Present perfect: non è compatibile con «the day before» in un racconto al passato.","D":"Futuro: contraddice «the day before».","E":"Forma grammaticalmente errata."},"concept":"Nel reported speech l'azione anteriore al verbo introduttivo passa al past perfect.","commonMistake":"Mantenere il tempo originale del discorso diretto."},{"id":"EN-024","section":"Inglese","topic":"Reported questions: ordine delle parole","difficulty":"media","question":"She asked me where ______.","options":{"A":"did I live","B":"do I live","C":"I lived","D":"lived I","E":"was I living"},"correctAnswer":"C","explanationSteps":["In una domanda indiretta l'ordine è soggetto + verbo, senza ausiliare «do/did» né inversione.","Il verbo introduttivo è al passato, quindi il verbo si porta al past simple: «I lived»."],"distractorAnalysis":{"A":"Mantiene l'inversione e l'ausiliare della domanda diretta.","B":"Domanda diretta al presente: non è un'indiretta.","D":"Ordine soggetto-verbo invertito in modo errato.","E":"Inversione con ausiliare tipica della domanda diretta."},"concept":"Nelle domande indirette l'ordine è affermativo e i tempi seguono la concordanza.","commonMistake":"Usare l'ordine della domanda diretta («where did I live»)."},{"id":"EN-025","section":"Inglese","topic":"Phrasal verbs: put off","difficulty":"media","question":"The meeting has been ______ until next week because the manager is ill.","options":{"A":"put on","B":"put out","C":"put up","D":"put in","E":"put off"},"correctAnswer":"E","explanationSteps":["La riunione è spostata a una data successiva: significa «postponed».","Il phrasal verb con questo significato è «put off»."],"distractorAnalysis":{"A":"«put on» significa indossare o organizzare uno spettacolo.","B":"«put out» significa spegnere o pubblicare.","C":"«put up» significa alzare, erigere o ospitare.","D":"«put in» significa inserire o installare."},"concept":"put off = posticipare; il significato dei phrasal verbs dipende dalla particella.","commonMistake":"Scegliere una particella a caso senza verificarne il significato."},{"id":"EN-026","section":"Inglese","topic":"False friends: sensible / sensitive","difficulty":"media","question":"Don't say that to her; she is very ______ and gets upset easily.","options":{"A":"sensible","B":"sensitive","C":"sensational","D":"sense","E":"sensed"},"correctAnswer":"B","explanationSteps":["Il contesto descrive una persona che si offende facilmente: è l'italiano «sensibile».","In inglese questo significato è espresso da «sensitive»; «sensible» significa invece «ragionevole»."],"distractorAnalysis":{"A":"«sensible» = ragionevole, assennato: falso amico di «sensibile».","C":"«sensational» = sensazionale, straordinario.","D":"«sense» è un nome (senso) e non può seguire «very» come aggettivo.","E":"«sensed» è un participio e non descrive una persona in questo modo."},"concept":"False friend: sensible (ragionevole) vs sensitive (sensibile).","commonMistake":"Tradurre «sensibile» con «sensible»."},{"id":"EN-027","section":"Inglese","topic":"Funzioni comunicative: richieste cortesi","difficulty":"media","question":"\"Would you mind closing the window? It's freezing in here.\" \"______ I'll do it now.\"","options":{"A":"Yes, I would.","B":"Not at all.","C":"Yes, of course not.","D":"You're welcome.","E":"I'm very glad."},"correctAnswer":"B","explanationSteps":["«Would you mind...?» chiede se la richiesta dà fastidio: per accettare si risponde in senso negativo.","«Not at all» significa «Per niente» e si accorda con «I'll do it now»."],"distractorAnalysis":{"A":"«Yes, I would» significa che dà fastidio, in contrasto con «I'll do it now».","C":"Risposta incoerente e scorretta.","D":"«You're welcome» si usa per rispondere a un ringraziamento.","E":"Non risponde alla richiesta."},"concept":"Con «Would you mind...?» si accetta con «Not at all» o «Of course not».","commonMistake":"Rispondere «Yes» pensando di acconsentire, mentre in inglese significa rifiutare."},{"id":"EN-028","section":"Inglese","topic":"Connettivi: despite / although","difficulty":"difficile","question":"______ the heavy traffic, we arrived on time.","options":{"A":"Although","B":"Because","C":"However","D":"But","E":"Despite"},"correctAnswer":"E","explanationSteps":["Dopo lo spazio vuoto segue un gruppo nominale («the heavy traffic»), non una proposizione con verbo.","Con un nome si usa «Despite»; «Although» richiede un soggetto e un verbo."],"distractorAnalysis":{"A":"«Although» introduce una subordinata con verbo.","B":"«Because» introduce una proposizione con verbo e ha valore causale.","C":"«However» collega frasi autonome e non precede un nome.","D":"«But» è una congiunzione coordinante e non apre la frase in questo modo."},"concept":"Despite / in spite of + nome o gerundio; although + soggetto + verbo.","commonMistake":"Usare «although» davanti a un sostantivo."},{"id":"EN-029","section":"Inglese","topic":"such a / so","difficulty":"media","question":"It was ______ a boring lecture that half of the students fell asleep.","options":{"A":"such","B":"so","C":"too","D":"very","E":"much"},"correctAnswer":"A","explanationSteps":["Dopo lo spazio c'è «a boring lecture»: articolo, aggettivo e sostantivo.","Con questa struttura si usa «such»; «so» si usa davanti ad aggettivi senza sostantivo."],"distractorAnalysis":{"B":"«so» precede un aggettivo o un avverbio, non «a + sostantivo».","C":"«too» indica eccesso e non regge questa struttura.","D":"«very» non si combina con «a boring lecture» in questa struttura consecutiva.","E":"«much» non si usa con «a + aggettivo + sostantivo»."},"concept":"such a + aggettivo + sostantivo singolare; so + aggettivo.","commonMistake":"Dire «so a boring lecture»."},{"id":"EN-030","section":"Inglese","topic":"Question tags","difficulty":"media","question":"You haven't seen my keys, ______?","options":{"A":"haven't you","B":"do you","C":"have you","D":"did you","E":"are you"},"correctAnswer":"C","explanationSteps":["La frase principale è negativa e usa l'ausiliare «have».","La question tag ripete lo stesso ausiliare con polarità opposta: «have you?»."],"distractorAnalysis":{"A":"Tag negativa dopo frase negativa: la polarità non è opposta.","B":"Ausiliare sbagliato: la frase usa «have», non «do».","D":"Ausiliare e tempo sbagliati.","E":"L'ausiliare «are» non corrisponde a «have»."},"concept":"Le question tag riprendono l'ausiliare della frase principale con polarità opposta.","commonMistake":"Usare «do/don't» come tag per qualsiasi frase."},{"id":"CV-001","section":"Comprensione verbale","topic":"Idea principale del brano","difficulty":"media","passageId":"CV-PASSAGE-01","question":"Qual è l'idea centrale del brano?","options":{"A":"Le grandi invenzioni hanno perso importanza rispetto alla conservazione delle opere esistenti.","B":"I ponti sono le infrastrutture che si degradano più rapidamente di tutte le altre.","C":"La manutenzione è essenziale per il funzionamento delle infrastrutture ma è poco valorizzata, senza che ciò sminuisca l'innovazione.","D":"I bilanci pubblici dovrebbero destinare tutte le risorse alla manutenzione e non alle opere nuove.","E":"I progettisti dovrebbero occuparsi direttamente della riparazione delle opere che hanno ideato."},"correctAnswer":"C","explanationSteps":["Il brano sostiene che la narrazione tecnica trascura la manutenzione, necessaria alle infrastrutture e poco celebrata e finanziata.","L'ultimo capoverso precisa che valorizzare la manutenzione non significa svalutare l'invenzione: la risposta corretta riassume l'intero testo."],"distractorAnalysis":{"A":"Contraddice l'ultimo capoverso: l'autore non svaluta l'invenzione.","B":"Il brano usa il ponte solo come esempio e non lo confronta con altre infrastrutture.","D":"Il testo non propone di eliminare i fondi per le opere nuove.","E":"Il testo non attribuisce ai progettisti un compito di riparazione."},"concept":"Individuare l'idea principale: la tesi che tiene insieme tutti i capoversi, comprese le precisazioni dell'autore.","commonMistake":"Scegliere un'opzione che esaspera la tesi (la conservazione prevale) o che generalizza un esempio."},{"id":"CV-002","section":"Comprensione verbale","topic":"Informazione esplicita","difficulty":"facile","passageId":"CV-PASSAGE-01","question":"Secondo il brano, perché il successo della manutenzione è difficile da celebrare?","options":{"A":"Perché consiste nell'assenza di un guasto, che è difficile da misurare.","B":"Perché gli interventi di manutenzione costano sempre più delle opere nuove.","C":"Perché chi li esegue ha competenze tecniche inferiori a quelle dei progettisti.","D":"Perché i ponti inaugurati non richiedono più alcun controllo.","E":"Perché le cerimonie pubbliche sono vietate per gli interventi di riparazione."},"correctAnswer":"A","explanationSteps":["Il secondo capoverso afferma che il successo della manutenzione consiste nell'assenza di un guasto e che un'assenza è difficile da misurare e da celebrare.","Le altre opzioni attribuiscono al testo affermazioni che non vi compaiono o che lo contraddicono."],"distractorAnalysis":{"B":"Il testo non confronta il costo della manutenzione con quello delle opere nuove.","C":"Il testo non afferma che i manutentori siano meno competenti; anzi, ne sottolinea la conoscenza.","D":"Contraddice il primo capoverso, secondo cui il ponte va controllato anche dopo l'inaugurazione.","E":"Nel testo non si parla di divieti."},"concept":"Individuare informazioni espresse esplicitamente nel testo.","commonMistake":"Scegliere un'opzione plausibile ma non supportata dal testo."},{"id":"CV-003","section":"Comprensione verbale","topic":"Significato contestuale","difficulty":"media","passageId":"CV-PASSAGE-01","question":"Nel brano, l'aggettivo «rinviabili», riferito alle spese di manutenzione, indica spese che","options":{"A":"sono già state posticipate negli anni precedenti.","B":"devono essere ridotte in modo definitivo.","C":"costano meno delle spese per le opere nuove.","D":"si possono rimandare perché la mancata esecuzione non produce subito danni percepibili.","E":"sono imposte per legge con scadenza annuale."},"correctAnswer":"D","explanationSteps":["Il testo precisa che un intervento posticipato di un anno non sembra aver causato danni immediati: per questo la spesa viene vista come rimandabile.","«Rinviabile» significa quindi «che si può rimandare» e non «da eliminare» né «già rinviato»."],"distractorAnalysis":{"A":"Il testo descrive una tendenza generale, non rinvii già avvenuti.","B":"Rinviare significa spostare nel tempo, non ridurre o eliminare.","C":"Il testo non confronta i costi delle due categorie di spesa.","E":"Nel brano non compaiono obblighi di legge."},"concept":"Dedurre il significato di un termine dal contesto in cui compare.","commonMistake":"Interpretare «rinviabile» come «eliminabile»."},{"id":"CV-004","section":"Comprensione verbale","topic":"Inferenza","difficulty":"media","passageId":"CV-PASSAGE-01","question":"Dal brano si può dedurre che posticipare un intervento di manutenzione","options":{"A":"elimina in modo definitivo la necessità dell'intervento.","B":"può dare l'impressione di un risparmio che nel tempo si rivela illusorio.","C":"provoca sempre un danno immediatamente visibile alla struttura.","D":"è consigliato dagli storici della tecnologia per ridurre la spesa pubblica.","E":"migliora la conoscenza dei punti deboli da parte dei progettisti."},"correctAnswer":"B","explanationSteps":["Il secondo capoverso dice che il risparmio appare reale, ma che in seguito il costo della riparazione tende a crescere.","Se ne deduce che il risparmio è solo apparente."],"distractorAnalysis":{"A":"Il testo dice che senza manutenzione la struttura si degrada: la necessità non scompare.","C":"Il testo afferma che il danno spesso non è visibile fino a quando diventa grave.","D":"Gli studiosi citati descrivono il fenomeno ma non lo raccomandano.","E":"Non c'è alcun legame nel testo tra posticipo e conoscenza dei punti deboli."},"concept":"Ricavare una conclusione implicita combinando informazioni presenti nel testo.","commonMistake":"Fermarsi alla prima parte («il risparmio appare reale») e ignorare l'ultima («il costo cresce»)."},{"id":"CV-005","section":"Comprensione verbale","topic":"Funzione di un capoverso","difficulty":"difficile","passageId":"CV-PASSAGE-01","question":"Qual è la funzione dell'ultimo capoverso rispetto al resto del brano?","options":{"A":"Introdurre una nuova tesi che contraddice quanto affermato prima.","B":"Fornire un esempio concreto di un ponte danneggiato.","C":"Riassumere i dati sui costi delle riparazioni.","D":"Dimostrare che i progettisti sono inutili per la durata delle opere.","E":"Precisare la tesi, evitando di contrapporre in modo semplicistico innovazione e conservazione."},"correctAnswer":"E","explanationSteps":["L'ultimo capoverso si apre con «Non si tratta, tuttavia, di contrapporre...», cioè corregge una possibile lettura troppo netta della tesi.","Poi mostra come innovazione e conservazione si influenzano a vicenda: serve a precisare la tesi, non a cambiarla."],"distractorAnalysis":{"A":"Non contraddice i capoversi precedenti, ma li completa.","B":"L'esempio del ponte compare nel primo capoverso.","C":"Nel testo non ci sono dati numerici sui costi.","D":"Il testo dice solo che i progettisti non conoscono certi punti deboli, non che siano inutili."},"concept":"Riconoscere il ruolo di un capoverso nell'argomentazione (introduzione, esempio, precisazione, conclusione).","commonMistake":"Interpretare una precisazione come una tesi nuova o opposta."}]}</script>
+  <script>
+    (() => {
+      "use strict";
+
+      const app = document.getElementById("app");
+      const LM009_STEPS = [
+        "A è falsa: per ogni x reale, scegliendo y = x si ottiene x < x, che è falso.",
+        "B è falsa: per x = 0 non esiste alcun y reale tale che x · y = 1.",
+        "C è vera: per ogni x reale basta scegliere y = −x, ottenendo x + y = 0.",
+        "D è falsa: per x = −1 non esiste alcun numero reale y il cui quadrato sia −1.",
+        "E è falsa: non esiste un unico y reale tale che x + y = 0 per ogni x reale."
+      ];
+      const SECTION_DEFINITIONS = [
+        { id: "LM", dataSection: "Logica, Matematica e Statistica", label: "Logica, Matematica e Statistica", shortLabel: "Logica, matematica e statistica", questionCount: 25, minutes: 65, weight: 2.6 },
+        { id: "CV", dataSection: "Comprensione verbale", label: "Comprensione verbale", shortLabel: "Comprensione verbale", questionCount: 5, minutes: 10, weight: 3 },
+        { id: "FI", dataSection: "Fisica", label: "Fisica", shortLabel: "Fisica", questionCount: 5, minutes: 10, weight: 2 },
+        { id: "EN", dataSection: "Inglese", label: "Inglese (TENG)", shortLabel: "Inglese (TENG)", questionCount: 30, minutes: 15, weight: 1 / 3 }
+      ];
+      const LETTERS = ["A", "B", "C", "D", "E"];
+      let bank;
+      let questionsBySection;
+      let state;
+
+      function escapeHtml(value) {
+        return String(value ?? "").replace(/[&<>"']/g, (character) => ({
+          "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;", "'": "&#039;"
+        })[character]);
+      }
+
+      function withBreaks(value) {
+        return escapeHtml(value).replace(/\r?\n/g, "<br>");
+      }
+
+      function formatScore(value) {
+        return new Intl.NumberFormat("it-IT", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(value);
+      }
+
+      function formatDuration(milliseconds) {
+        const seconds = Math.max(0, Math.round(milliseconds / 1000));
+        const minutes = Math.floor(seconds / 60);
+        return `${String(minutes).padStart(2, "0")}:${String(seconds % 60).padStart(2, "0")}`;
+      }
+
+      function durationFor(sectionId) {
+        const definition = SECTION_DEFINITIONS.find((item) => item.id === sectionId);
+        return definition.minutes * 60 * 1000;
+      }
+
+      function validateBank(candidate) {
+        const failures = [];
+        if (!candidate || !Array.isArray(candidate.questions) || !Array.isArray(candidate.passages)) {
+          failures.push("radice dati non valida");
+        }
+        if (failures.length) throw new Error(failures.join("; "));
+        if (candidate.questions.length !== 65) failures.push(`attese 65 domande, ricevute ${candidate.questions.length}`);
+        const ids = candidate.questions.map((question) => question.id);
+        if (new Set(ids).size !== ids.length) failures.push("identificatori non univoci");
+        for (const definition of SECTION_DEFINITIONS) {
+          const group = candidate.questions.filter((question) => question.section === definition.dataSection);
+          if (group.length !== definition.questionCount) failures.push(`${definition.id}: attese ${definition.questionCount}, ricevute ${group.length}`);
+        }
+        for (const question of candidate.questions) {
+          const optionKeys = question.options && Object.keys(question.options).sort();
+          if (!optionKeys || optionKeys.join("") !== "ABCDE") failures.push(`${question.id}: alternative non A–E`);
+          if (!LETTERS.includes(question.correctAnswer)) failures.push(`${question.id}: risposta corretta non valida`);
+          if (!Array.isArray(question.explanationSteps) || question.explanationSteps.length === 0) failures.push(`${question.id}: spiegazione assente`);
+        }
+        const passages = new Set(candidate.passages.map((passage) => passage.id));
+        const cvQuestions = candidate.questions.filter((question) => question.section === "Comprensione verbale");
+        if (cvQuestions.some((question) => !passages.has(question.passageId))) failures.push("riferimento al brano CV non valido");
+        const lm009 = candidate.questions.find((question) => question.id === "LM-009");
+        if (!lm009 || JSON.stringify(lm009.explanationSteps) !== JSON.stringify(LM009_STEPS)) failures.push("LM-009 non contiene la correzione autorizzata");
+        if (failures.length) throw new Error(failures.join(" · "));
+      }
+
+      function createInitialState() {
+        return {
+          started: false,
+          finished: false,
+          view: "welcome",
+          activeSectionId: null,
+          activeQuestionIndex: 0,
+          answers: {},
+          notice: "",
+          timerId: null,
+          closing: false,
+          reviewFilter: { section: "all", outcome: "all" },
+          sections: Object.fromEntries(SECTION_DEFINITIONS.map((definition) => [definition.id, {
+            status: "unopened",
+            startedAt: null,
+            elapsedMs: 0,
+            closeReason: null
+          }]))
+        };
+      }
+
+      function sectionState(sectionId) {
+        return state.sections[sectionId];
+      }
+
+      function elapsedFor(sectionId) {
+        const item = sectionState(sectionId);
+        if (item.status === "active" && item.startedAt !== null) {
+          return Math.min(durationFor(sectionId), item.elapsedMs + Date.now() - item.startedAt);
+        }
+        return Math.min(durationFor(sectionId), item.elapsedMs);
+      }
+
+      function remainingFor(sectionId) {
+        return Math.max(0, durationFor(sectionId) - elapsedFor(sectionId));
+      }
+
+      function header() {
+        const themeLabel = document.body.classList.contains("dark") ? "Passa al tema chiaro" : "Passa al tema scuro";
+        return `
+          <header class="app-header shell">
+            <div class="brand" aria-label="Simulatore TOL – Ingegneria">
+              <div class="brand-mark" aria-hidden="true">TOL</div>
+              <div><p class="eyebrow">Pratica autonoma</p><h2>Simulatore TOL – Ingegneria</h2></div>
+            </div>
+            <button class="theme-button" type="button" data-action="toggle-theme" aria-pressed="${document.body.classList.contains("dark")}">${themeLabel}</button>
+          </header>`;
+      }
+
+      function renderWelcome() {
+        const cards = SECTION_DEFINITIONS.map((definition) => `
+          <article class="card section-card">
+            <h3>${escapeHtml(definition.shortLabel)}</h3>
+            <p>${definition.questionCount} domande · ${definition.minutes} min</p>
+            <strong>peso × ${definition.weight === 1 / 3 ? "⅓" : String(definition.weight).replace(".", ",")}</strong>
+          </article>`).join("");
+        app.innerHTML = `${header()}
+          <main id="main-content" class="shell">
+            <section class="hero" aria-labelledby="welcome-title">
+              <p class="eyebrow">Esercitazione completa · 65 domande</p>
+              <h1 id="welcome-title">Preparati con una simulazione concentrata e trasparente.</h1>
+              <p>Affronta le quattro sezioni con tempi indipendenti, risposte a scelta multipla e una revisione dettagliata alla fine. Le soluzioni restano nascoste finché la prova non è conclusa.</p>
+              <div class="independent-note">Simulatore indipendente di pratica; non è una piattaforma ufficiale del Politecnico di Milano.</div>
+            </section>
+            <h2 class="section-title">Struttura della simulazione</h2>
+            <section class="section-grid" aria-label="Sezioni, domande, tempi e pesi">${cards}</section>
+            <section class="info-grid" aria-label="Regole di punteggio e svolgimento">
+              <article class="card">
+                <h2>Punteggio su 100</h2>
+                <div class="rules">
+                  <div class="rule"><strong>+1</strong><span>risposta corretta</span></div>
+                  <div class="rule"><strong>−0,25</strong><span>risposta errata</span></div>
+                  <div class="rule"><strong>0</strong><span>lasciata in bianco</span></div>
+                </div>
+                <p class="formula">Il punteggio ponderato è calcolato senza arrotondare le sezioni: Logica × 2,6 + Comprensione × 3 + Fisica × 2 + Inglese × ⅓.</p>
+              </article>
+              <article class="card">
+                <h2>Come funziona</h2>
+                <p class="muted">Il cronometro parte entrando nella sezione, non si può mettere in pausa e il tempo non passa alla sezione successiva. Chiudere una sezione in anticipo è definitivo.</p>
+              </article>
+            </section>
+            <div class="start-row">
+              <p>Durata totale prevista: 100 minuti. Evita di ricaricare la pagina durante la prova: i progressi non vengono salvati.</p>
+              <button class="button-primary" type="button" data-action="start">Inizia la simulazione</button>
+            </div>
+          </main>`;
+      }
+
+      function getActiveDefinition() {
+        return SECTION_DEFINITIONS.find((definition) => definition.id === state.activeSectionId);
+      }
+
+      function getActiveQuestions() {
+        return questionsBySection[state.activeSectionId] || [];
+      }
+
+      function getPassage(question) {
+        return question.passageId ? bank.passages.find((passage) => passage.id === question.passageId) : null;
+      }
+
+      function renderPassage(passage) {
+        if (!passage) return "";
+        return `<aside class="passage-card" aria-labelledby="passage-${escapeHtml(passage.id)}">
+          <p class="eyebrow">Brano di riferimento</p>
+          <h2 id="passage-${escapeHtml(passage.id)}">${escapeHtml(passage.title)}</h2>
+          <p class="passage-origin">${escapeHtml(passage.origin)}</p>
+          <p class="passage-text">${withBreaks(passage.text)}</p>
+        </aside>`;
+      }
+
+      function renderQuestionNavigation(questions) {
+        return questions.map((question, index) => {
+          const selected = state.answers[question.id];
+          const classes = [index === state.activeQuestionIndex ? "is-current" : "", selected ? "is-answered" : ""].filter(Boolean).join(" ");
+          const stateText = index === state.activeQuestionIndex ? ", domanda corrente" : selected ? ", risposta selezionata" : ", lasciata in bianco";
+          return `<button type="button" class="${classes}" data-action="go-question" data-index="${index}" ${index === state.activeQuestionIndex ? "aria-current=\"step\"" : ""} aria-label="Domanda ${index + 1}${stateText}">${index + 1}</button>`;
+        }).join("");
+      }
+
+      function renderExam() {
+        const definition = getActiveDefinition();
+        const questions = getActiveQuestions();
+        const question = questions[state.activeQuestionIndex];
+        if (!definition || !question) return;
+        const selected = state.answers[question.id] || "";
+        const answeredCount = questions.filter((item) => Boolean(state.answers[item.id])).length;
+        const progress = ((state.activeQuestionIndex + 1) / questions.length) * 100;
+        const options = LETTERS.map((letter) => `
+          <label class="option">
+            <input type="radio" name="answer" value="${letter}" data-answer="true" ${selected === letter ? "checked" : ""}>
+            <span class="option-letter" aria-hidden="true">${letter}</span>
+            <span class="option-text">${escapeHtml(question.options[letter])}</span>
+          </label>`).join("");
+        const previousDisabled = state.activeQuestionIndex === 0 ? "disabled" : "";
+        const nextDisabled = state.activeQuestionIndex === questions.length - 1 ? "disabled" : "";
+        const nextLabel = state.activeQuestionIndex === questions.length - 1 ? "Ultima domanda" : "Avanti";
+        app.innerHTML = `${header()}
+          <main id="main-content" class="shell exam-layout">
+            <section class="exam-main" aria-labelledby="section-title">
+              <div class="exam-status">
+                <div class="exam-topline">
+                  <div><p class="eyebrow">Sezione attiva</p><h1 id="section-title">${escapeHtml(definition.label)}</h1></div>
+                  <div id="timer-box" class="clock" aria-label="Tempo rimanente"><span aria-hidden="true">◷</span><span id="timer-text">${formatDuration(remainingFor(definition.id))}</span></div>
+                </div>
+                <div class="progress-wrap" aria-label="Avanzamento nella sezione">
+                  <div class="progress-meta"><span>Domanda ${state.activeQuestionIndex + 1} di ${questions.length}</span><span>${answeredCount} risposte selezionate</span></div>
+                  <div class="progress-track" role="progressbar" aria-valuemin="1" aria-valuemax="${questions.length}" aria-valuenow="${state.activeQuestionIndex + 1}" aria-label="Domande percorse"><div class="progress-bar" style="width: ${progress}%"></div></div>
+                </div>
+              </div>
+              ${state.notice ? `<p id="exam-notice" class="notice" role="status">${escapeHtml(state.notice)}</p>` : ""}
+              ${renderPassage(getPassage(question))}
+              <article class="question-card" aria-labelledby="question-title">
+                <div class="question-meta"><span class="badge id">${escapeHtml(question.id)}</span><span class="badge">${escapeHtml(question.topic)}</span><span class="badge">Difficoltà: ${escapeHtml(question.difficulty)}</span></div>
+                <h2 id="question-title" tabindex="-1">${escapeHtml(question.question)}</h2>
+                <fieldset class="answers"><legend>Seleziona una risposta</legend>${options}</fieldset>
+                <div class="question-actions">
+                  <div class="group">
+                    <button class="button-secondary" type="button" data-action="previous" ${previousDisabled}>Indietro</button>
+                    <button class="button-primary" type="button" data-action="next" ${nextDisabled}>${nextLabel}</button>
+                  </div>
+                  <button class="button-quiet" type="button" data-action="blank" ${selected ? "" : "disabled"}>Lascia in bianco</button>
+                </div>
+              </article>
+            </section>
+            <aside class="exam-sidebar" aria-label="Navigazione e completamento sezione">
+              <h2>Vai a una domanda</h2>
+              <p>Puoi modificare le risposte finché la sezione è aperta.</p>
+              <nav class="question-nav" aria-label="Domande della sezione">${renderQuestionNavigation(questions)}</nav>
+              <div class="legend" aria-label="Legenda navigazione"><span><i class="current"></i> Corrente</span><span><i class="answered"></i> Con risposta</span><span><i></i> In bianco</span></div>
+              <button class="button-secondary button-danger end-section" type="button" data-action="finish-section">Termina questa sezione</button>
+            </aside>
+          </main>`;
+        updateClock();
+      }
+
+      function scoreForAnswers(answerMap = state.answers) {
+        const sections = SECTION_DEFINITIONS.map((definition) => {
+          let correct = 0;
+          let incorrect = 0;
+          let blank = 0;
+          for (const question of questionsBySection[definition.id]) {
+            const selected = answerMap[question.id];
+            if (!selected) blank += 1;
+            else if (selected === question.correctAnswer) correct += 1;
+            else incorrect += 1;
+          }
+          const raw = correct - (incorrect * 0.25);
+          return {
+            ...definition,
+            correct,
+            incorrect,
+            blank,
+            raw,
+            weighted: raw * definition.weight,
+            accuracy: (correct / definition.questionCount) * 100,
+            elapsedMs: elapsedFor(definition.id)
+          };
+        });
+        return { sections, total: sections.reduce((sum, item) => sum + item.weighted, 0) };
+      }
+
+      function renderResults() {
+        const result = scoreForAnswers();
+        const overall = result.sections.reduce((accumulator, item) => ({
+          correct: accumulator.correct + item.correct,
+          incorrect: accumulator.incorrect + item.incorrect,
+          blank: accumulator.blank + item.blank,
+          elapsedMs: accumulator.elapsedMs + item.elapsedMs
+        }), { correct: 0, incorrect: 0, blank: 0, elapsedMs: 0 });
+        const cards = result.sections.map((item) => `
+          <article class="results-card">
+            <h2>${escapeHtml(item.shortLabel)}</h2>
+            <p class="score">${formatScore(item.weighted)} <span class="muted">/ ${formatScore(item.questionCount * item.weight)}</span></p>
+            <p class="muted">Lordo ${formatScore(item.raw)} · ${formatDuration(item.elapsedMs)} impiegati</p>
+            <div class="result-list">
+              <div><strong>${item.correct}</strong>corrette</div>
+              <div><strong>${item.incorrect}</strong>errate</div>
+              <div><strong>${item.blank}</strong>in bianco</div>
+              <div><strong>${formatScore(item.accuracy)}%</strong>accuratezza</div>
+            </div>
+          </article>`).join("");
+        app.innerHTML = `${header()}
+          <main id="main-content" class="shell">
+            <section class="results-head" aria-labelledby="results-title">
+              <p class="eyebrow">Simulazione conclusa</p>
+              <h1 id="results-title">Il tuo risultato</h1>
+              <div class="score-orb" aria-label="Punteggio finale ${formatScore(result.total)} su 100"><div><strong>${formatScore(result.total)}</strong><span>su 100</span></div></div>
+              <p class="muted">${overall.correct} corrette · ${overall.incorrect} errate · ${overall.blank} in bianco · ${formatDuration(overall.elapsedMs)} complessivi</p>
+            </section>
+            <section class="results-grid" aria-label="Risultati per sezione">${cards}</section>
+            <div class="results-actions">
+              <button class="button-primary" type="button" data-action="open-review">Rivedi l'esame</button>
+              <button class="button-secondary" type="button" data-action="reset">Nuova simulazione</button>
+            </div>
+          </main>`;
+      }
+
+      function outcomeFor(question) {
+        const selected = state.answers[question.id];
+        if (!selected) return "blank";
+        return selected === question.correctAnswer ? "correct" : "wrong";
+      }
+
+      function outcomeLabel(outcome) {
+        return ({ correct: "Corretta", wrong: "Errata", blank: "In bianco" })[outcome];
+      }
+
+      function reviewQuestionCard(question) {
+        const outcome = outcomeFor(question);
+        const selected = state.answers[question.id];
+        const passage = getPassage(question);
+        const selection = selected ? `<strong>${selected}</strong> — ${escapeHtml(question.options[selected])}` : "Nessuna risposta selezionata";
+        const correct = `<strong>${question.correctAnswer}</strong> — ${escapeHtml(question.options[question.correctAnswer])}`;
+        const steps = question.explanationSteps.map((step) => `<li>${escapeHtml(step)}</li>`).join("");
+        const distractors = Object.entries(question.distractorAnalysis).map(([letter, text]) => `<div class="distractor"><strong>${escapeHtml(letter)}.</strong> ${escapeHtml(text)}</div>`).join("");
+        return `${passage ? `<div data-passage-marker="${escapeHtml(passage.id)}">${renderPassage(passage)}</div>` : ""}
+          <article class="review-card status-${outcome}">
+            <div class="question-meta"><span class="badge id">${escapeHtml(question.id)}</span><span class="badge">${escapeHtml(question.topic)}</span></div>
+            <h2>${escapeHtml(question.question)}</h2>
+            <span class="review-outcome ${outcome}">${outcomeLabel(outcome)}</span>
+            <dl class="review-answer-grid">
+              <div class="review-answer"><dt>La tua risposta</dt><dd>${selection}</dd></div>
+              <div class="review-answer"><dt>Risposta corretta</dt><dd>${correct}</dd></div>
+            </dl>
+            <section class="review-section"><h3>Spiegazione</h3><ol>${steps}</ol></section>
+            <section class="review-section"><h3>Analisi dei distrattori</h3><div class="distractors">${distractors}</div></section>
+            <section class="review-section"><h3>Concetto valutato</h3><p>${escapeHtml(question.concept)}</p></section>
+            <section class="review-section"><h3>Errore comune</h3><p>${escapeHtml(question.commonMistake)}</p></section>
+          </article>`;
+      }
+
+      function renderReview() {
+        const ordered = SECTION_DEFINITIONS.flatMap((definition) => questionsBySection[definition.id]);
+        const filtered = ordered.filter((question) => {
+          const sectionMatch = state.reviewFilter.section === "all" || question.section === SECTION_DEFINITIONS.find((definition) => definition.id === state.reviewFilter.section).dataSection;
+          const outcome = outcomeFor(question);
+          const outcomeMatch = state.reviewFilter.outcome === "all" || outcome === state.reviewFilter.outcome;
+          return sectionMatch && outcomeMatch;
+        });
+        const renderedPassages = new Set();
+        const list = filtered.map((question) => {
+          const passage = getPassage(question);
+          if (passage && renderedPassages.has(passage.id)) {
+            return reviewQuestionCard(question).replace(new RegExp(`<div data-passage-marker="${passage.id}">[\\s\\S]*?<\\/div>`, ""), "");
+          }
+          if (passage) renderedPassages.add(passage.id);
+          return reviewQuestionCard(question);
+        }).join("");
+        const options = SECTION_DEFINITIONS.map((definition) => `<option value="${definition.id}" ${state.reviewFilter.section === definition.id ? "selected" : ""}>${escapeHtml(definition.label)}</option>`).join("");
+        app.innerHTML = `${header()}
+          <main id="main-content" class="shell">
+            <section class="review-header" aria-labelledby="review-title">
+              <div><p class="eyebrow">Revisione dettagliata</p><h1 id="review-title">Rivedi le tue risposte</h1></div>
+              <button class="button-secondary" type="button" data-action="close-review">Torna ai risultati</button>
+            </section>
+            <section class="card filters" aria-label="Filtri revisione">
+              <label>Sezione<select data-review-filter="section"><option value="all">Tutte le sezioni</option>${options}</select></label>
+              <label>Esito<select data-review-filter="outcome"><option value="all" ${state.reviewFilter.outcome === "all" ? "selected" : ""}>Tutti gli esiti</option><option value="wrong" ${state.reviewFilter.outcome === "wrong" ? "selected" : ""}>Solo errate</option><option value="blank" ${state.reviewFilter.outcome === "blank" ? "selected" : ""}>Solo in bianco</option><option value="correct" ${state.reviewFilter.outcome === "correct" ? "selected" : ""}>Solo corrette</option></select></label>
+            </section>
+            <p class="review-count">${filtered.length} ${filtered.length === 1 ? "domanda mostrata" : "domande mostrate"}</p>
+            <section class="review-list" aria-label="Domande revisionate">${list || "<div class=\"card empty-state\">Nessuna domanda corrisponde ai filtri selezionati.</div>"}</section>
+          </main>`;
+      }
+
+      function render() {
+        if (state.view === "welcome") renderWelcome();
+        else if (state.view === "exam") renderExam();
+        else if (state.view === "results") renderResults();
+        else renderReview();
+      }
+
+      function updateClock() {
+        if (state.view !== "exam" || !state.activeSectionId) return;
+        const remaining = remainingFor(state.activeSectionId);
+        const text = document.getElementById("timer-text");
+        const box = document.getElementById("timer-box");
+        if (text) text.textContent = formatDuration(remaining);
+        if (box) box.classList.toggle("is-low", remaining <= 60_000);
+      }
+
+      function activateSection(sectionId, notice = "") {
+        const item = sectionState(sectionId);
+        item.status = "active";
+        item.startedAt = Date.now();
+        state.activeSectionId = sectionId;
+        state.activeQuestionIndex = 0;
+        state.notice = notice;
+        state.view = "exam";
+        render();
+      }
+
+      function startExam() {
+        if (state.timerId) window.clearInterval(state.timerId);
+        state = createInitialState();
+        state.started = true;
+        activateSection(SECTION_DEFINITIONS[0].id);
+        state.timerId = window.setInterval(tick, 250);
+      }
+
+      function closeSection(sectionId, reason) {
+        const item = sectionState(sectionId);
+        if (!item || item.status !== "active" || state.closing) return false;
+        state.closing = true;
+        item.elapsedMs = elapsedFor(sectionId);
+        item.startedAt = null;
+        item.status = "closed";
+        item.closeReason = reason;
+        const next = SECTION_DEFINITIONS.find((definition) => sectionState(definition.id).status === "unopened");
+        if (next) {
+          const notice = reason === "timeout" ? `Il tempo della sezione precedente è terminato. Ora inizia ${next.label}.` : `Sezione conclusa. Ora inizia ${next.label}.`;
+          state.closing = false;
+          activateSection(next.id, notice);
+        } else {
+          state.activeSectionId = null;
+          state.finished = true;
+          state.view = "results";
+          if (state.timerId) window.clearInterval(state.timerId);
+          state.timerId = null;
+          state.closing = false;
+          render();
+        }
+        return true;
+      }
+
+      function finishActiveSection() {
+        const definition = getActiveDefinition();
+        if (!definition) return;
+        const confirmed = window.confirm(`Terminare definitivamente la sezione “${definition.label}”? Le risposte in bianco resteranno tali e non sarà possibile tornare indietro.`);
+        if (confirmed) closeSection(definition.id, "manual");
+      }
+
+      function tick() {
+        if (!state.started || state.finished || state.view !== "exam" || !state.activeSectionId) return;
+        if (remainingFor(state.activeSectionId) <= 0) {
+          closeSection(state.activeSectionId, "timeout");
+          return;
+        }
+        updateClock();
+      }
+
+      function chooseAnswer(letter) {
+        const questions = getActiveQuestions();
+        const question = questions[state.activeQuestionIndex];
+        if (!question || !LETTERS.includes(letter) || sectionState(state.activeSectionId).status !== "active") return;
+        state.answers[question.id] = letter;
+        renderExam();
+        requestAnimationFrame(() => app.querySelector(`input[data-answer][value="${letter}"]`)?.focus());
+      }
+
+      function blankAnswer() {
+        const question = getActiveQuestions()[state.activeQuestionIndex];
+        if (!question) return;
+        delete state.answers[question.id];
+        renderExam();
+        requestAnimationFrame(() => app.querySelector('[data-action="blank"]')?.focus());
+      }
+
+      function changeQuestion(index) {
+        const questions = getActiveQuestions();
+        if (!Number.isInteger(index) || index < 0 || index >= questions.length) return;
+        state.activeQuestionIndex = index;
+        renderExam();
+        requestAnimationFrame(() => document.getElementById("question-title")?.focus?.());
+      }
+
+      function resetExam() {
+        const confirmed = window.confirm("Iniziare una nuova simulazione? Tutte le risposte e i risultati correnti verranno rimossi.");
+        if (!confirmed) return;
+        if (state.timerId) window.clearInterval(state.timerId);
+        state = createInitialState();
+        render();
+      }
+
+      app.addEventListener("click", (event) => {
+        const control = event.target.closest("[data-action]");
+        if (!control || control.disabled) return;
+        switch (control.dataset.action) {
+          case "toggle-theme":
+            document.body.classList.toggle("dark");
+            render();
+            break;
+          case "start": startExam(); break;
+          case "previous": changeQuestion(state.activeQuestionIndex - 1); break;
+          case "next": changeQuestion(state.activeQuestionIndex + 1); break;
+          case "go-question": changeQuestion(Number(control.dataset.index)); break;
+          case "blank": blankAnswer(); break;
+          case "finish-section": finishActiveSection(); break;
+          case "open-review": state.view = "review"; render(); break;
+          case "close-review": state.view = "results"; render(); break;
+          case "reset": resetExam(); break;
+          default: break;
+        }
+      });
+
+      app.addEventListener("change", (event) => {
+        if (event.target.matches("input[data-answer]")) chooseAnswer(event.target.value);
+        if (event.target.matches("select[data-review-filter]")) {
+          state.reviewFilter[event.target.dataset.reviewFilter] = event.target.value;
+          renderReview();
+        }
+      });
+
+      window.addEventListener("beforeunload", (event) => {
+        if (state && state.started && !state.finished) {
+          event.preventDefault();
+          event.returnValue = "";
+        }
+      });
+
+      function initialize() {
+        try {
+          const source = document.getElementById("bank-data").textContent;
+          bank = JSON.parse(source);
+          validateBank(bank);
+          questionsBySection = Object.fromEntries(SECTION_DEFINITIONS.map((definition) => [definition.id, bank.questions.filter((question) => question.section === definition.dataSection)]));
+          state = createInitialState();
+          render();
+        } catch (error) {
+          console.error(error);
+          app.innerHTML = `<main class="shell"><section class="error-screen"><h1>Impossibile avviare il simulatore</h1><p>I dati incorporati non hanno superato il controllo di integrità.</p><p class="muted">${escapeHtml(error.message)}</p></section></main>`;
+        }
+      }
+
+      initialize();
+    })();
+  </script>
+</body>
+</html>
